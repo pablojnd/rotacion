@@ -1,6 +1,8 @@
 package services
 
 import (
+	"encoding/json"
+
 	"github.com/pablojnd/rotacion/db"
 	"github.com/pablojnd/rotacion/models"
 	"github.com/pablojnd/rotacion/queries/mysql"
@@ -42,6 +44,24 @@ func (s *InventarioService) GetInventario(filtro models.InventarioFiltro) ([]map
 	result, err := utils.RowsToJSON(rows)
 	if err != nil {
 		return nil, err
+	}
+
+	// Procesar los metadatos JSON para corregir las comillas
+	for i := range result {
+		if metadataJSON, ok := result[i]["Metadatos_JSON"].(string); ok {
+			// Arreglar las comillas simples en el JSON
+			fixedJSON := utils.FixJSONQuotes(metadataJSON)
+
+			// Intentar analizar como JSON válido para verificar
+			var metadata []interface{}
+			if err := json.Unmarshal([]byte(fixedJSON), &metadata); err == nil {
+				// Si el análisis tiene éxito, reemplazar el string con el objeto JSON analizado
+				result[i]["Metadatos_JSON"] = metadata
+			} else {
+				// Si hay error, mantener el string arreglado
+				result[i]["Metadatos_JSON"] = fixedJSON
+			}
+		}
 	}
 
 	return result, nil

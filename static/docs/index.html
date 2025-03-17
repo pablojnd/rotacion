@@ -145,6 +145,94 @@
             </div>
         </section>
 
+        <section class="section endpoint-section get">
+            <h2>Consulta de Inventario</h2>
+            <div class="endpoint">
+                <div class="method get">GET</div>
+                <div class="path">/api/inventario</div>
+            </div>
+            <div class="card">
+                <p>Obtiene datos de inventario consolidados por producto, incluyendo metadatos detallados en formato
+                    JSON.</p>
+                <h4>Parámetros:</h4>
+                <ul>
+                    <li><code>anio</code> - Año del inventario (por defecto: año actual)</li>
+                </ul>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>/api/inventario?anio=2024</code></pre>
+                <h4>Ejemplo de respuesta:</h4>
+                <pre><code>{
+  "Codigo_Producto": "017J",
+  "Nombre_Producto": "MOLDURA DE RESINA S/M  ART. J03505-017J",
+  "MARCA": "POR ASIGNAR",
+  "CATEGORIA": "POR ASIGNAR",
+  "DIMENSIONES": "",
+  "Unidades_Por_Paquete": 1.0,
+  "Cantidad_Total_Ingresada": 660.0,
+  "PromedioPonderadoCostoCIF": 2.39,
+  "Costo_Real_Promedio": 2.39,
+  "Fecha_Primer_Ingreso": "2014-02-05",
+  "Fecha_Ultimo_Ingreso": "2014-02-05",
+  "Cantidad_De_Ingresos": 1,
+  "Metadatos_JSON": [
+    {
+      "Zeta": "001-14-005079-022",
+      "Anio_Produccion": "2024",
+      "Cantidad_Ingresada": 660.00,
+      "Fecha_Ingreso": "2014-02-05"
+    }
+  ]
+}</code></pre>
+                <div class="test-button-container">
+                    <a href="/api/inventario?anio=2024" target="_blank" class="test-button">Probar API</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section endpoint-section get">
+            <h2>Consulta de Inventario</h2>
+            <div class="endpoint">
+                <div class="method get">GET</div>
+                <div class="path">/api/inventario</div>
+            </div>
+            <div class="card">
+                <p>Obtiene datos de inventario consolidados por producto, incluyendo metadatos detallados en formato
+                    JSON.</p>
+                <h4>Parámetros:</h4>
+                <ul>
+                    <li><code>anio</code> - Año del inventario (por defecto: año actual)</li>
+                </ul>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>/api/inventario?anio=2024</code></pre>
+                <h4>Ejemplo de respuesta:</h4>
+                <pre><code>{
+  "Codigo_Producto": "017J",
+  "Nombre_Producto": "MOLDURA DE RESINA S/M  ART. J03505-017J",
+  "MARCA": "POR ASIGNAR",
+  "CATEGORIA": "POR ASIGNAR",
+  "DIMENSIONES": "",
+  "Unidades_Por_Paquete": 1.0,
+  "Cantidad_Total_Ingresada": 660.0,
+  "Promedio_Costo_CIF": 2.39,
+  "Costo_Promedio_IKA": 2.39,
+  "Fecha_Primer_Ingreso": "2014-02-05",
+  "Fecha_Ultimo_Ingreso": "2014-02-05",
+  "Cantidad_De_Ingresos": 1,
+  "Metadatos_JSON": [
+    {
+      "Zeta": "001-14-005079-022",
+      "Anio_Produccion": "2024",
+      "Cantidad_Ingresada": 660.00,
+      "Fecha_Ingreso": "2014-02-05"
+    }
+  ]
+}</code></pre>
+                <div class="test-button-container">
+                    <a href="/api/inventario?anio=2024" target="_blank" class="test-button">Probar API</a>
+                </div>
+            </div>
+        </section>
+
         <!-- ENDPOINTS POST -->
         <h2>Endpoints POST</h2>
 
@@ -282,7 +370,7 @@
                         <form id="inventarioForm" class="test-form">
                             <div class="form-group">
                                 <label for="anio">Año:</label>
-                                <input type="number" id="anio" value="2025">
+                                <input type="number" id="anio" value="2024">
                             </div>
                             <div class="form-group">
                                 <p class="info-text">Consulta el inventario del año especificado, mostrando información
