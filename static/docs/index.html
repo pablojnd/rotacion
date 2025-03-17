@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API de Rotación - Documentación</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>API de Rotación</h1>
+        <p class="subtitle">Documentación de Endpoints</p>
+    </header>
+
+    <main>
+        <section class="section">
+            <h2>Resumen de Endpoints</h2>
+            <div class="card">
+                <p>Esta API proporciona acceso a los datos de ventas y consultas personalizadas en SQL Server y MySQL.
+                </p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Estado de la API</h2>
+            <div class="endpoint">
+                <div class="method">GET</div>
+                <div class="path">/health</div>
+            </div>
+            <div class="card">
+                <p>Verifica que la API está funcionando correctamente.</p>
+                <h4>Respuesta:</h4>
+                <pre><code>API en funcionamiento</code></pre>
+                <div class="test-button-container">
+                    <a href="/health" target="_blank" class="test-button">Probar API</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Consultas SQL Server</h2>
+            <div class="endpoint">
+                <div class="method">POST</div>
+                <div class="path">/api/sqlserver/query</div>
+            </div>
+            <div class="card">
+                <p>Ejecuta una consulta personalizada en SQL Server.</p>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>{
+  "query": "SELECT TOP 10 * FROM PRODUCTO",
+  "args": []
+}</code></pre>
+                <div class="test-button-container info">
+                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Consultas MySQL</h2>
+            <div class="endpoint">
+                <div class="method">POST</div>
+                <div class="path">/api/mysql/query</div>
+            </div>
+            <div class="card">
+                <p>Ejecuta una consulta personalizada en MySQL.</p>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>{
+  "query": "SELECT * FROM productos LIMIT 10",
+  "args": []
+}</code></pre>
+                <div class="test-button-container info">
+                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Consulta de Ventas</h2>
+            <div class="endpoint">
+                <div class="method">GET</div>
+                <div class="path">/api/ventas</div>
+            </div>
+            <div class="card">
+                <p>Obtiene datos de ventas según los filtros especificados.</p>
+                <h4>Parámetros:</h4>
+                <ul>
+                    <li><code>fechaInicio</code> - Fecha de inicio en formato YYYY-MM-DD</li>
+                    <li><code>fechaFin</code> - Fecha de fin en formato YYYY-MM-DD</li>
+                    <li><code>sucursal</code> - ID de sucursal (por defecto: 211)</li>
+                </ul>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>/api/ventas?fechaInicio=2025-01-01&fechaFin=2025-01-31&sucursal=211</code></pre>
+                <div class="test-button-container">
+                    <a href="/api/ventas?fechaInicio=2025-01-01&fechaFin=2025-01-31&sucursal=211" target="_blank"
+                        class="test-button">Probar API</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Exportar Ventas a Excel</h2>
+            <div class="endpoint">
+                <div class="method">GET</div>
+                <div class="path">/api/ventas/excel</div>
+            </div>
+            <div class="card">
+                <p>Exporta datos de ventas a un archivo Excel según los filtros especificados.</p>
+                <h4>Parámetros:</h4>
+                <ul>
+                    <li><code>fechaInicio</code> - Fecha de inicio en formato YYYY-MM-DD</li>
+                    <li><code>fechaFin</code> - Fecha de fin en formato YYYY-MM-DD</li>
+                    <li><code>sucursal</code> - ID de sucursal (por defecto: 211)</li>
+                </ul>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>/api/ventas/excel?fechaInicio=2025-01-01&fechaFin=2025-01-31&sucursal=211</code></pre>
+                <div class="test-button-container">
+                    <a href="/api/ventas/excel?fechaInicio=2025-01-01&fechaFin=2025-01-31&sucursal=211" target="_blank"
+                        class="test-button">Probar API</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Exportar a Excel (Genérico)</h2>
+            <div class="endpoint">
+                <div class="method">POST</div>
+                <div class="path">/api/export/excel</div>
+            </div>
+            <div class="card">
+                <p>Exporta los resultados de una consulta personalizada a un archivo Excel.</p>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>{
+  "query": "SELECT TOP 100 * FROM VENTA_BOLETA",
+  "args": [],
+  "database": "sqlserver",
+  "filename": "ventas.xlsx"
+}</code></pre>
+                <div class="test-button-container info">
+                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Prueba rápida (formulario)</h2>
+            <div class="card">
+                <h3>Consulta de Ventas</h3>
+                <form id="ventasForm" class="test-form">
+                    <div class="form-group">
+                        <label for="fechaInicio">Fecha Inicio:</label>
+                        <input type="date" id="fechaInicio" value="2025-01-01">
+                    </div>
+                    <div class="form-group">
+                        <label for="fechaFin">Fecha Fin:</label>
+                        <input type="date" id="fechaFin" value="2025-01-31">
+                    </div>
+                    <div class="form-group">
+                        <label for="sucursal">Sucursal:</label>
+                        <input type="number" id="sucursal" value="211">
+                    </div>
+                    <div class="button-group">
+                        <button type="button" onclick="consultarVentas()">Consultar JSON</button>
+                        <button type="button" onclick="descargarExcel()">Descargar Excel</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Rotación API - Desarrollado con Go</p>
+    </footer>
+
+    <script>
+        function consultarVentas() {
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            const sucursal = document.getElementById('sucursal').value;
+
+            const url = `/api/ventas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&sucursal=${sucursal}`;
+            window.open(url, '_blank');
+        }
+
+        function descargarExcel() {
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            const sucursal = document.getElementById('sucursal').value;
+
+            const url = `/api/ventas/excel?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&sucursal=${sucursal}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+
+</html>

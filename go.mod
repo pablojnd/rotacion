@@ -1,4 +1,4 @@
-module github.com/yourusername/rotacion
+module github.com/pablojnd/rotacion
 
 go 1.21
 

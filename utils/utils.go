@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"log"
+	"strconv"
+	"time"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -123,4 +126,64 @@ func GenerateExcel(rows *sql.Rows, filename string) ([]byte, error) {
 	}
 
 	return buffer.Bytes(), nil
+}
+
+// ParseInt convierte un string a int con un valor por defecto si hay error
+func ParseInt(value string, defaultValue int) int {
+	if value == "" {
+		return defaultValue
+	}
+
+	intValue, err := strconv.Atoi(value)
+	if err != nil {
+		return defaultValue
+	}
+
+	return intValue
+}
+
+// ParseFloat convierte un string a float64 con un valor por defecto si hay error
+func ParseFloat(value string, defaultValue float64) float64 {
+	if value == "" {
+		return defaultValue
+	}
+
+	floatValue, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return defaultValue
+	}
+
+	return floatValue
+}
+
+// ParseDate convierte un string a time.Time con formato "2006-01-02"
+func ParseDate(value string) (time.Time, error) {
+	return time.Parse("2006-01-02", value)
+}
+
+// AnalyzarTipos analiza los tipos de datos de las columnas
+func AnalyzarTipos(rows *sql.Rows) {
+	columnTypes, err := rows.ColumnTypes()
+	if err != nil {
+		log.Printf("Error al obtener tipos de columnas: %v", err)
+		return
+	}
+
+	log.Println("Análisis de tipos de columnas:")
+	for _, ct := range columnTypes {
+		precision, scale, ok := ct.DecimalSize()
+		if ok {
+			log.Printf("- Columna: %s, Tipo: %s, Precision: %d, Scale: %d",
+				ct.Name(), ct.DatabaseTypeName(), precision, scale)
+		} else {
+			length, ok := ct.Length()
+			if ok {
+				log.Printf("- Columna: %s, Tipo: %s, Length: %d",
+					ct.Name(), ct.DatabaseTypeName(), length)
+			} else {
+				log.Printf("- Columna: %s, Tipo: %s",
+					ct.Name(), ct.DatabaseTypeName())
+			}
+		}
+	}
 }

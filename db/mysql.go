@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/yourusername/rotacion/config"
+	"github.com/pablojnd/rotacion/config"
 )
 
 // MySQLDB representa una conexión a MySQL

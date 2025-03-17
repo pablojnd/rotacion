@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/yourusername/rotacion/config"
+	"github.com/pablojnd/rotacion/config"
 )
 
 // SQLServerDB representa una conexión a SQL Server
