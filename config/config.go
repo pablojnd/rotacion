@@ -27,33 +27,55 @@ type Config struct {
 	ServerPort string
 }
 
-// Load carga la configuración desde el archivo .env
+// Load carga la configuración desde el archivo .env o variables de entorno
 func Load() (*Config, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, err
+	// Intentar cargar .env, pero no fallar si no existe
+	_ = godotenv.Load()
+
+	// Convertir puertos a enteros
+	sqlServerPort, _ := strconv.Atoi(os.Getenv("DB_PORT"))
+	if sqlServerPort == 0 {
+		sqlServerPort = 1433 // Puerto por defecto de SQL Server
 	}
 
-	sqlServerPort, _ := strconv.Atoi(os.Getenv("DB_PORT"))
 	mysqlPort, _ := strconv.Atoi(os.Getenv("MYSQL_PORT"))
+	if mysqlPort == 0 {
+		mysqlPort = 3306 // Puerto por defecto de MySQL
+	}
+
+	// Obtener puerto del servidor
+	serverPort := os.Getenv("SERVER_PORT")
+	if serverPort == "" {
+		serverPort = "8080" // Puerto por defecto
+	}
 
 	cfg := &Config{
 		// SQL Server
-		SQLServerHost:     os.Getenv("DB_SERVER"),
-		SQLServerUser:     os.Getenv("DB_USER"),
-		SQLServerPassword: os.Getenv("DB_PASSWORD"),
-		SQLServerDatabase: os.Getenv("DB_NAME"),
+		SQLServerHost:     getEnv("DB_SERVER", "localhost"),
+		SQLServerUser:     getEnv("DB_USER", "sa"),
+		SQLServerPassword: getEnv("DB_PASSWORD", ""),
+		SQLServerDatabase: getEnv("DB_NAME", ""),
 		SQLServerPort:     sqlServerPort,
 
 		// MySQL
-		MySQLHost:     os.Getenv("MYSQL_HOST"),
-		MySQLUser:     os.Getenv("MYSQL_USER"),
-		MySQLPassword: os.Getenv("MYSQL_PASSWORD"),
-		MySQLDatabase: os.Getenv("MYSQL_DATABASE"),
+		MySQLHost:     getEnv("MYSQL_HOST", "localhost"),
+		MySQLUser:     getEnv("MYSQL_USER", "root"),
+		MySQLPassword: getEnv("MYSQL_PASSWORD", ""),
+		MySQLDatabase: getEnv("MYSQL_DATABASE", ""),
 		MySQLPort:     mysqlPort,
 
 		// Server
-		ServerPort: os.Getenv("SERVER_PORT"),
+		ServerPort: serverPort,
 	}
 
 	return cfg, nil
+}
+
+// getEnv obtiene una variable de entorno o devuelve un valor por defecto
+func getEnv(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }
