@@ -1,0 +1,80 @@
+package services
+
+import (
+	"github.com/pablojnd/rotacion/db"
+	"github.com/pablojnd/rotacion/models"
+	"github.com/pablojnd/rotacion/queries/mysql"
+	"github.com/pablojnd/rotacion/utils"
+)
+
+// InventarioService proporciona métodos para trabajar con datos de inventario
+type InventarioService struct {
+	mysql        *db.MySQLDB
+	excelService *ExcelService
+}
+
+// NewInventarioService crea un nuevo servicio de inventario
+func NewInventarioService(mysql *db.MySQLDB, excelService *ExcelService) *InventarioService {
+	return &InventarioService{
+		mysql:        mysql,
+		excelService: excelService,
+	}
+}
+
+// GetInventario obtiene el inventario según los filtros proporcionados
+func (s *InventarioService) GetInventario(filtro models.InventarioFiltro) ([]map[string]interface{}, error) {
+	// Validar filtros
+	if err := filtro.Validar(); err != nil {
+		return nil, err
+	}
+
+	// Obtener la consulta SQL
+	query := mysql.GetInventarioQuery()
+
+	// Ejecutar la consulta con los parámetros
+	rows, err := s.mysql.ExecuteQuery(query, filtro.Anio)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Convertir resultados a JSON
+	result, err := utils.RowsToJSON(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// ExportInventarioToExcel exporta el inventario a un archivo Excel
+func (s *InventarioService) ExportInventarioToExcel(filtro models.InventarioFiltro) ([]byte, string, error) {
+	// Validar filtros
+	if err := filtro.Validar(); err != nil {
+		return nil, "", err
+	}
+
+	// Nombre del archivo
+	filename := generateInventarioFilename(filtro)
+
+	// Obtener y ejecutar la consulta
+	query := mysql.GetInventarioQuery()
+	rows, err := s.mysql.ExecuteQuery(query, filtro.Anio)
+	if err != nil {
+		return nil, "", err
+	}
+	defer rows.Close()
+
+	// Generar Excel
+	excelBytes, err := s.excelService.GenerateExcel(rows, filename)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return excelBytes, filename, nil
+}
+
+// generateInventarioFilename genera un nombre de archivo para el reporte de inventario
+func generateInventarioFilename(filtro models.InventarioFiltro) string {
+	return "Inventario_" + string(filtro.Anio) + ".xlsx"
+}

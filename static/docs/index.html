@@ -6,6 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API de Rotación - Documentación</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .method.get {
+            background-color: #28a745;
+        }
+
+        .method.post {
+            background-color: #0275d8;
+        }
+
+        .endpoint-section.get {
+            border-left: 4px solid #28a745;
+        }
+
+        .endpoint-section.post {
+            border-left: 4px solid #0275d8;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,10 +40,13 @@
             </div>
         </section>
 
-        <section class="section">
+        <!-- ENDPOINTS GET -->
+        <h2>Endpoints GET</h2>
+
+        <section class="section endpoint-section get">
             <h2>Estado de la API</h2>
             <div class="endpoint">
-                <div class="method">GET</div>
+                <div class="method get">GET</div>
                 <div class="path">/health</div>
             </div>
             <div class="card">
@@ -39,48 +59,10 @@
             </div>
         </section>
 
-        <section class="section">
-            <h2>Consultas SQL Server</h2>
-            <div class="endpoint">
-                <div class="method">POST</div>
-                <div class="path">/api/sqlserver/query</div>
-            </div>
-            <div class="card">
-                <p>Ejecuta una consulta personalizada en SQL Server.</p>
-                <h4>Ejemplo de solicitud:</h4>
-                <pre><code>{
-  "query": "SELECT TOP 10 * FROM PRODUCTO",
-  "args": []
-}</code></pre>
-                <div class="test-button-container info">
-                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>Consultas MySQL</h2>
-            <div class="endpoint">
-                <div class="method">POST</div>
-                <div class="path">/api/mysql/query</div>
-            </div>
-            <div class="card">
-                <p>Ejecuta una consulta personalizada en MySQL.</p>
-                <h4>Ejemplo de solicitud:</h4>
-                <pre><code>{
-  "query": "SELECT * FROM productos LIMIT 10",
-  "args": []
-}</code></pre>
-                <div class="test-button-container info">
-                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
+        <section class="section endpoint-section get">
             <h2>Consulta de Ventas</h2>
             <div class="endpoint">
-                <div class="method">GET</div>
+                <div class="method get">GET</div>
                 <div class="path">/api/ventas</div>
             </div>
             <div class="card">
@@ -100,10 +82,10 @@
             </div>
         </section>
 
-        <section class="section">
+        <section class="section endpoint-section get">
             <h2>Exportar Ventas a Excel</h2>
             <div class="endpoint">
-                <div class="method">GET</div>
+                <div class="method get">GET</div>
                 <div class="path">/api/ventas/excel</div>
             </div>
             <div class="card">
@@ -123,10 +105,131 @@
             </div>
         </section>
 
-        <section class="section">
+        <section class="section endpoint-section get">
+            <h2>Consulta de Inventario</h2>
+            <div class="endpoint">
+                <div class="method get">GET</div>
+                <div class="path">/api/inventario</div>
+            </div>
+            <div class="card">
+                <p>Obtiene datos de inventario según los filtros especificados.</p>
+                <h4>Parámetros:</h4>
+                <ul>
+                    <li><code>anio</code> - Año del inventario (por defecto: año actual)</li>
+                </ul>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>/api/inventario?anio=2025</code></pre>
+                <div class="test-button-container">
+                    <a href="/api/inventario?anio=2025" target="_blank" class="test-button">Probar API</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section endpoint-section get">
+            <h2>Exportar Inventario a Excel</h2>
+            <div class="endpoint">
+                <div class="method get">GET</div>
+                <div class="path">/api/inventario/excel</div>
+            </div>
+            <div class="card">
+                <p>Exporta datos de inventario a un archivo Excel según los filtros especificados.</p>
+                <h4>Parámetros:</h4>
+                <ul>
+                    <li><code>anio</code> - Año del inventario (por defecto: año actual)</li>
+                </ul>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>/api/inventario/excel?anio=2025</code></pre>
+                <div class="test-button-container">
+                    <a href="/api/inventario/excel?anio=2025" target="_blank" class="test-button">Probar API</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ENDPOINTS POST -->
+        <h2>Endpoints POST</h2>
+
+        <section class="section endpoint-section post">
+            <h2>Consultas SQL Server</h2>
+            <div class="endpoint">
+                <div class="method post">POST</div>
+                <div class="path">/api/sqlserver/query</div>
+            </div>
+            <div class="card">
+                <p>Ejecuta una consulta personalizada en SQL Server.</p>
+                <h4>Ejemplo de solicitud:</h4>
+                <pre><code>{
+  "query": "SELECT TOP 10 * FROM PRODUCTO",
+  "args": []
+}</code></pre>
+                <div class="test-button-container info">
+                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section endpoint-section post">
+            <h2>Consultas MySQL</h2>
+            <div class="endpoint">
+                <div class="method post">POST</div>
+                <div class="path">/api/mysql/query</div>
+            </div>
+            <div class="card">
+                <p>Ejecuta una consulta personalizada en MySQL.</p>
+                <h4>Ejemplo de solicitud básica:</h4>
+                <pre><code>{
+  "query": "SELECT * FROM productos LIMIT 10",
+  "args": []
+}</code></pre>
+                <h4>Ejemplo de solicitud avanzada (Inventario 2025):</h4>
+                <pre><code>{
+  "query": "SELECT COD_ART AS Codigo_Producto, Marca AS MARCA, SubFamilia AS CATEGORIA, saldos.NomDetSubFam AS DIMENSIONES, ZET_ART AS Zeta, ANIO_PRO AS Anio_Produccion, DES_INT AS Nombre_Producto, UNI_CAJ AS Packing, SUM(CAN_ING) AS Cantidad_Total, SUM(CIF_UNI * CAN_ING) / SUM(CAN_ING) AS PromedioPonderadoCostoCIF, cos_uni AS Costo_Real, MAX(fec_ing) AS Fecha_Ingreso, DATEDIFF(CURDATE(), (SELECT MAX(fec_ing) FROM saldos AS s2 WHERE s2.COD_ART = saldos.COD_ART AND s2.ZET_ART = saldos.ZET_ART AND s2.ANIO_PRO = saldos.ANIO_PRO)) AS Dias_Desde_Ingreso, (SELECT SUM(s2.CIF_UNI * s2.CAN_ING) / SUM(s2.CAN_ING) FROM saldos s2 WHERE s2.COD_ART = saldos.COD_ART AND s2.ANIO_PRO = saldos.ANIO_PRO) AS GlobalPromedioCostoCIF FROM saldos WHERE CAST(ANIO_PRO AS SIGNED) = 2025 GROUP BY COD_ART, Marca, SubFamilia, saldos.NomDetSubFam, ZET_ART, ANIO_PRO, DES_INT, UNI_CAJ, cos_uni ORDER BY COD_ART, ANIO_PRO",
+  "args": []
+}</code></pre>
+                <h4>Ejemplo de respuesta (Inventario 2025):</h4>
+                <pre><code>[
+  {
+    "Codigo_Producto": "017J",
+    "MARCA": "POR ASIGNAR",
+    "CATEGORIA": "POR ASIGNAR",
+    "DIMENSIONES": "",
+    "Zeta": "001-14-005079-022",
+    "Anio_Produccion": "2025",
+    "Nombre_Producto": "MOLDURA DE RESINA S/M  ART. J03505-017J",
+    "Packing": 1.0,
+    "Cantidad_Total": 0.0,
+    "PromedioPonderadoCostoCIF": null,
+    "Costo_Real": 2.39,
+    "Fecha_Ingreso": null,
+    "Dias_Desde_Ingreso": null,
+    "GlobalPromedioCostoCIF": null
+  },
+  {
+    "Codigo_Producto": "1100105101",
+    "MARCA": "POR ASIGNAR",
+    "CATEGORIA": "POR ASIGNAR",
+    "DIMENSIONES": "",
+    "Zeta": "534-16-000085-002",
+    "Anio_Produccion": "2025",
+    "Nombre_Producto": "EQUIPO DUAL CORE S/M  DISCO DURO 1 TB, 4 GB RAM, DVDRW, LECTOR TARJETA MULTIMEDIA, TECLADO, MOUSE, P",
+    "Packing": 1.0,
+    "Cantidad_Total": 0.0,
+    "PromedioPonderadoCostoCIF": null,
+    "Costo_Real": 214.63,
+    "Fecha_Ingreso": null,
+    "Dias_Desde_Ingreso": null,
+    "GlobalPromedioCostoCIF": null
+  }
+]</code></pre>
+                <div class="test-button-container info">
+                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section endpoint-section post">
             <h2>Exportar a Excel (Genérico)</h2>
             <div class="endpoint">
-                <div class="method">POST</div>
+                <div class="method post">POST</div>
                 <div class="path">/api/export/excel</div>
             </div>
             <div class="card">
@@ -144,6 +247,7 @@
             </div>
         </section>
 
+        <!-- PRUEBA RÁPIDA AL FINAL -->
         <section class="section">
             <h2>Prueba rápida (formulario)</h2>
             <div class="card">

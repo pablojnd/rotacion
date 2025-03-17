@@ -47,12 +47,16 @@ func (s *Server) setupRoutes() {
 	// Consultas SQL Server
 	apiRouter.HandleFunc("/sqlserver/query", handlers.SQLServerQuery).Methods("POST")
 
-	// Consulta específica de ventas (nueva)
+	// Consulta específica de ventas
 	apiRouter.HandleFunc("/ventas", handlers.GetVentas).Methods("GET")
 	apiRouter.HandleFunc("/ventas/excel", handlers.ExportVentas).Methods("GET")
 
 	// Consultas MySQL
 	apiRouter.HandleFunc("/mysql/query", handlers.MySQLQuery).Methods("POST")
+
+	// Nueva ruta para inventario
+	apiRouter.HandleFunc("/inventario", handlers.GetInventario).Methods("GET")
+	apiRouter.HandleFunc("/inventario/excel", handlers.ExportInventario).Methods("GET")
 
 	// Exportar a Excel
 	apiRouter.HandleFunc("/export/excel", handlers.ExportToExcel).Methods("POST")
