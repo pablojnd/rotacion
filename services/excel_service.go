@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"net/http"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -123,4 +124,14 @@ func (s *ExcelService) GenerateExcel(rows *sql.Rows, filename string) ([]byte, e
 	}
 
 	return buffer.Bytes(), nil
+}
+
+// SendExcelResponse envía un archivo Excel como respuesta HTTP
+func SendExcelResponse(w http.ResponseWriter, excelBytes []byte, filename string) {
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
+	w.Header().Set("Content-Transfer-Encoding", "binary")
+	w.Header().Set("Expires", "0")
+
+	w.Write(excelBytes)
 }

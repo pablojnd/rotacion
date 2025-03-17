@@ -7,6 +7,8 @@ import (
 	"github.com/pablojnd/rotacion/api"
 	"github.com/pablojnd/rotacion/config"
 	"github.com/pablojnd/rotacion/db"
+	"github.com/pablojnd/rotacion/excel"
+	"github.com/pablojnd/rotacion/services"
 )
 
 // Server representa el servidor HTTP
@@ -32,8 +34,22 @@ func New(cfg *config.Config, sqlServer *db.SQLServerDB, mysql *db.MySQLDB) *Serv
 
 // setupRoutes configura las rutas del API
 func (s *Server) setupRoutes() {
+	// Crear servicios compartidos
+	excelService := services.NewExcelService()
+	ventasService := services.NewVentasService(s.sqlServer, excelService)
+	inventarioService := services.NewInventarioService(s.mysql, excelService)
+
 	// Crear handlers para la API
 	handlers := api.NewHandlers(s.sqlServer, s.mysql)
+
+	// Crear handler para Excel
+	excelHandler := excel.NewHandler(
+		s.sqlServer,
+		s.mysql,
+		excelService,
+		ventasService,
+		inventarioService,
+	)
 
 	// Ruta de estado del servidor
 	s.router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -49,17 +65,17 @@ func (s *Server) setupRoutes() {
 
 	// Consulta específica de ventas
 	apiRouter.HandleFunc("/ventas", handlers.GetVentas).Methods("GET")
-	apiRouter.HandleFunc("/ventas/excel", handlers.ExportVentas).Methods("GET")
+	apiRouter.HandleFunc("/ventas/excel", excelHandler.ExportVentas).Methods("GET")
 
 	// Consultas MySQL
 	apiRouter.HandleFunc("/mysql/query", handlers.MySQLQuery).Methods("POST")
 
-	// Nueva ruta para inventario
+	// Ruta para inventario
 	apiRouter.HandleFunc("/inventario", handlers.GetInventario).Methods("GET")
-	apiRouter.HandleFunc("/inventario/excel", handlers.ExportInventario).Methods("GET")
+	apiRouter.HandleFunc("/inventario/excel", excelHandler.ExportInventario).Methods("GET")
 
 	// Exportar a Excel
-	apiRouter.HandleFunc("/export/excel", handlers.ExportToExcel).Methods("POST")
+	apiRouter.HandleFunc("/export/excel", excelHandler.ExportGeneric).Methods("POST")
 
 	// Servir archivos estáticos
 	fs := http.FileServer(http.Dir("./static"))

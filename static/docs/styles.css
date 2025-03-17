@@ -241,3 +241,27 @@ footer {
 .button-group button:hover {
     background-color: var(--button-hover-color);
 }
+
+/* Estilos para las columnas de formularios */
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+}
+
+.form-column {
+    flex: 1;
+    min-width: 300px;
+    padding: 0 10px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-column {
+        width: 100%;
+    }
+}
