@@ -13,10 +13,11 @@ type Inventario struct {
 	Dimensiones            string    `json:"dimensiones"`
 	UnidadesPorPaquete     float64   `json:"unidadesPorPaquete"`
 	CantidadTotalIngresada float64   `json:"cantidadTotalIngresada"`
-	PromedioCostoCIF       float64   `json:"promedioCostoCIF"` // Cambiado el nombre
-	CostoPromedioIKA       float64   `json:"costoPromedioIKA"` // Campo nuevo
+	PromedioCostoCIF       float64   `json:"promedioCostoCIF"`
+	CostoPromedioIKA       float64   `json:"costoPromedioIKA"`
 	FechaPrimerIngreso     time.Time `json:"fechaPrimerIngreso"`
 	FechaUltimoIngreso     time.Time `json:"fechaUltimoIngreso"`
+	DiasDesdePrimerIngreso int       `json:"diasDesdePrimerIngreso"` // Nuevo campo
 	CantidadDeIngresos     int       `json:"cantidadDeIngresos"`
 	MetadatosJSON          string    `json:"metadatosJSON"`
 }

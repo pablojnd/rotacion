@@ -2,6 +2,8 @@ package services
 
 import (
 	"encoding/json"
+	"regexp"
+	"strings"
 
 	"github.com/pablojnd/rotacion/db"
 	"github.com/pablojnd/rotacion/models"
@@ -31,13 +33,13 @@ func (s *InventarioService) GetInventario(filtro models.InventarioFiltro) ([]map
 	}
 
 	// Obtener la consulta SQL
-	query := mysql.GetInventarioQuery()
+	query := mysql.GetSimplifiedDimensionsQuery()
 
 	// Ejecutar la consulta con los parámetros
 	rows, err := s.mysql.ExecuteQuery(query,
 		filtro.Anio,
 		filtro.CodigoProducto,
-		filtro.CodigoProducto) // pasamos dos veces para el CONCAT en la consulta
+		filtro.CodigoProducto)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +51,9 @@ func (s *InventarioService) GetInventario(filtro models.InventarioFiltro) ([]map
 		return nil, err
 	}
 
-	// Procesar los metadatos JSON para corregir las comillas
+	// Procesar los metadatos JSON y las dimensiones
 	for i := range result {
+		// Procesar metadatos JSON
 		if metadataJSON, ok := result[i]["Metadatos_JSON"].(string); ok {
 			// Arreglar las comillas simples en el JSON
 			fixedJSON := utils.FixJSONQuotes(metadataJSON)
@@ -65,9 +68,33 @@ func (s *InventarioService) GetInventario(filtro models.InventarioFiltro) ([]map
 				result[i]["Metadatos_JSON"] = fixedJSON
 			}
 		}
+
+		// Procesar dimensiones si es necesario
+		if dimensiones, ok := result[i]["DIMENSIONES"].(string); ok {
+			if dimensiones == "POR ASIGNAR" || dimensiones == "Sin Asignar" || dimensiones == "" {
+				if nombreProducto, ok := result[i]["Nombre_Producto"].(string); ok {
+					// Extraer dimensiones del nombre del producto
+					result[i]["DIMENSIONES"] = extractDimensionsFromName(nombreProducto)
+				}
+			}
+		}
 	}
 
 	return result, nil
+}
+
+// extractDimensionsFromName extrae las dimensiones del nombre del producto
+func extractDimensionsFromName(name string) string {
+	// Buscamos patrones comunes de dimensiones: NxN, NXN, N X N, etc.
+	// seguidos opcionalmente por CM, CMS, etc.
+	re := regexp.MustCompile(`(\d+\s*[Xx]\s*\d+(?:\s*(?:CM|CMS|MM)?)?)`)
+
+	matches := re.FindStringSubmatch(name)
+	if len(matches) > 0 {
+		return strings.TrimSpace(matches[0])
+	}
+
+	return "POR ASIGNAR"
 }
 
 // ExportInventarioToExcel exporta el inventario a un archivo Excel
