@@ -24,6 +24,20 @@ type Venta struct {
 	CantidadDeVentas int     `json:"cantidadDeVentas"`
 }
 
+// VentaAgrupada representa la información consolidada de ventas por producto
+type VentaAgrupada struct {
+	CodigoProducto       string  `json:"codigoProducto"`
+	Producto             string  `json:"producto"`
+	CostoUnitario        float64 `json:"costoUnitario"`
+	PrecioProducto       float64 `json:"precioProducto"`
+	PrecioOferta         float64 `json:"precioOferta"`
+	CantidadVendidaTotal float64 `json:"cantidadVendidaTotal"`
+	TotalVentas          float64 `json:"totalVentas"`
+	PrecioPromedio       float64 `json:"precioPromedio"`
+	CantidadDeVentas     int     `json:"cantidadDeVentas"`
+	UltimaFechaVenta     string  `json:"ultimaFechaVenta"`
+}
+
 // VentasFiltro define los filtros para consultar ventas
 type VentasFiltro struct {
 	FechaInicio    string `json:"fechaInicio"`
@@ -56,3 +70,14 @@ func (f *VentasFiltro) Validar() error {
 
 	return nil
 }
+
+// TipoConsultaVentas define el tipo de consulta de ventas
+type TipoConsultaVentas string
+
+const (
+	// ConsultaVentasDetallada retorna cada venta individual
+	ConsultaVentasDetallada TipoConsultaVentas = "detallada"
+
+	// ConsultaVentasAgrupada retorna ventas agrupadas por producto
+	ConsultaVentasAgrupada TipoConsultaVentas = "agrupada"
+)

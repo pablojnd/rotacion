@@ -22,21 +22,34 @@ func NewVentasService(sqlServer *db.SQLServerDB, excelService *ExcelService) *Ve
 }
 
 // GetVentas obtiene las ventas según los filtros proporcionados
-func (s *VentasService) GetVentas(filtro models.VentasFiltro) ([]map[string]interface{}, error) {
+func (s *VentasService) GetVentas(filtro models.VentasFiltro, tipo models.TipoConsultaVentas) ([]map[string]interface{}, error) {
 	// Validar filtros
 	if err := filtro.Validar(); err != nil {
 		return nil, err
 	}
 
-	// Obtener la consulta SQL
-	query := sqlserver.GetVentasQuery()
+	var query string
+	var args []interface{}
 
-	// Ejecutar la consulta con los parámetros - adaptado para la nueva consulta
-	rows, err := s.sqlServer.ExecuteQuery(query,
-		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para BoletasConsolidadas
-		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para FacturasConsolidadas
-		filtro.CodigoProducto, filtro.CodigoProducto) // Para el filtrado por código
+	// Seleccionar la consulta según el tipo
+	if tipo == models.ConsultaVentasAgrupada {
+		query = sqlserver.GetVentasAgrupadasQuery()
+		args = []interface{}{
+			filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para Boletas
+			filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para Facturas
+			filtro.CodigoProducto, filtro.CodigoProducto, // Para filtrado por código
+		}
+	} else {
+		query = sqlserver.GetVentasQuery()
+		args = []interface{}{
+			filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para Boletas
+			filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para Facturas
+			filtro.CodigoProducto, filtro.CodigoProducto, // Para filtrado por código
+		}
+	}
 
+	// Ejecutar la consulta con los parámetros
+	rows, err := s.sqlServer.ExecuteQuery(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,8 +64,13 @@ func (s *VentasService) GetVentas(filtro models.VentasFiltro) ([]map[string]inte
 	return result, nil
 }
 
+// GetVentasAgrupadas obtiene las ventas agrupadas por producto según los filtros proporcionados
+func (s *VentasService) GetVentasAgrupadas(filtro models.VentasFiltro) ([]map[string]interface{}, error) {
+	return s.GetVentas(filtro, models.ConsultaVentasAgrupada)
+}
+
 // ExportVentasToExcel exporta ventas a un archivo Excel
-func (s *VentasService) ExportVentasToExcel(filtro models.VentasFiltro) ([]byte, string, error) {
+func (s *VentasService) ExportVentasToExcel(filtro models.VentasFiltro, tipo models.TipoConsultaVentas) ([]byte, string, error) {
 	// Validar filtros
 	if err := filtro.Validar(); err != nil {
 		return nil, "", err
@@ -61,13 +79,28 @@ func (s *VentasService) ExportVentasToExcel(filtro models.VentasFiltro) ([]byte,
 	// Nombre del archivo
 	filename := generateVentasFilename(filtro)
 
-	// Obtener y ejecutar la consulta
-	query := sqlserver.GetVentasQuery()
-	rows, err := s.sqlServer.ExecuteQuery(query,
-		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para BoletasConsolidadas
-		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para FacturasConsolidadas
-		filtro.CodigoProducto, filtro.CodigoProducto) // Para el filtrado por código
+	var query string
+	var args []interface{}
 
+	// Seleccionar la consulta según el tipo
+	if tipo == models.ConsultaVentasAgrupada {
+		query = sqlserver.GetVentasAgrupadasQuery()
+		args = []interface{}{
+			filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para Boletas
+			filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para Facturas
+			filtro.CodigoProducto, filtro.CodigoProducto, // Para filtrado por código
+		}
+	} else {
+		query = sqlserver.GetVentasQuery()
+		args = []interface{}{
+			filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para Boletas
+			filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para Facturas
+			filtro.CodigoProducto, filtro.CodigoProducto, // Para filtrado por código
+		}
+	}
+
+	// Obtener y ejecutar la consulta
+	rows, err := s.sqlServer.ExecuteQuery(query, args...)
 	if err != nil {
 		return nil, "", err
 	}
@@ -80,6 +113,11 @@ func (s *VentasService) ExportVentasToExcel(filtro models.VentasFiltro) ([]byte,
 	}
 
 	return excelBytes, filename, nil
+}
+
+// ExportVentasAgrupadasToExcel exporta ventas agrupadas a un archivo Excel
+func (s *VentasService) ExportVentasAgrupadasToExcel(filtro models.VentasFiltro) ([]byte, string, error) {
+	return s.ExportVentasToExcel(filtro, models.ConsultaVentasAgrupada)
 }
 
 // generateVentasFilename genera un nombre de archivo para el reporte de ventas

@@ -67,6 +67,10 @@ func (s *Server) setupRoutes() {
 	apiRouter.HandleFunc("/ventas", handlers.GetVentas).Methods("GET")
 	apiRouter.HandleFunc("/ventas/excel", excelHandler.ExportVentas).Methods("GET")
 
+	// Nueva ruta para ventas agrupadas
+	apiRouter.HandleFunc("/ventas/agrupadas", handlers.GetVentasAgrupadas).Methods("GET")
+	apiRouter.HandleFunc("/ventas/agrupadas/excel", excelHandler.ExportVentasAgrupadas).Methods("GET")
+
 	// Consultas MySQL
 	apiRouter.HandleFunc("/mysql/query", handlers.MySQLQuery).Methods("POST")
 
