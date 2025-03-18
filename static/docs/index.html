@@ -296,104 +296,53 @@
             </div>
         </section>
 
-        <!-- ENDPOINTS POST -->
-        <h2>Endpoints POST</h2>
-
-        <section class="section endpoint-section post">
-            <h2>Consultas SQL Server</h2>
+        <!-- Sección de Reporte Combinado -->
+        <section class="section endpoint-section get">
+            <h2>Reporte Combinado Inventario-Ventas</h2>
             <div class="endpoint">
-                <div class="method post">POST</div>
-                <div class="path">/api/sqlserver/query</div>
+                <div class="method get">GET</div>
+                <div class="path">/api/reporte/combinado</div>
             </div>
             <div class="card">
-                <p>Ejecuta una consulta personalizada en SQL Server.</p>
+                <p>Genera un reporte que combina datos de inventario y ventas para análisis completo de productos.</p>
+                <h4>Parámetros:</h4>
+                <ul>
+                    <li><code>anio</code> - Año del inventario (por defecto: año actual)</li>
+                    <li><code>fechaInicio</code> - Fecha de inicio para ventas en formato YYYY-MM-DD</li>
+                    <li><code>fechaFin</code> - Fecha de fin para ventas en formato YYYY-MM-DD</li>
+                    <li><code>sucursal</code> - ID de sucursal para ventas (por defecto: 211)</li>
+                    <li><code>codigo</code> - (Opcional) Código del producto para filtrar</li>
+                </ul>
                 <h4>Ejemplo de solicitud:</h4>
-                <pre><code>{
-  "query": "SELECT TOP 10 * FROM PRODUCTO",
-  "args": []
-}</code></pre>
-                <div class="test-button-container info">
-                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
+                <pre><code>/api/reporte/combinado?anio=2024&fechaInicio=2024-01-01&fechaFin=2024-12-31&sucursal=211&codigo=CERARA</code></pre>
+                <div class="test-button-container">
+                    <a href="/api/reporte/combinado?anio=2024&fechaInicio=2024-01-01&fechaFin=2024-12-31"
+                        target="_blank" class="test-button">Probar API</a>
                 </div>
             </div>
         </section>
 
-        <section class="section endpoint-section post">
-            <h2>Consultas MySQL</h2>
+        <section class="section endpoint-section get">
+            <h2>Exportar Reporte Combinado a Excel</h2>
             <div class="endpoint">
-                <div class="method post">POST</div>
-                <div class="path">/api/mysql/query</div>
+                <div class="method get">GET</div>
+                <div class="path">/api/reporte/combinado/excel</div>
             </div>
             <div class="card">
-                <p>Ejecuta una consulta personalizada en MySQL.</p>
-                <h4>Ejemplo de solicitud básica:</h4>
-                <pre><code>{
-  "query": "SELECT * FROM productos LIMIT 10",
-  "args": []
-}</code></pre>
-                <h4>Ejemplo de solicitud avanzada (Inventario 2025):</h4>
-                <pre><code>{
-  "query": "SELECT COD_ART AS Codigo_Producto, Marca AS MARCA, SubFamilia AS CATEGORIA, saldos.NomDetSubFam AS DIMENSIONES, ZET_ART AS Zeta, ANIO_PRO AS Anio_Produccion, DES_INT AS Nombre_Producto, UNI_CAJ AS Packing, SUM(CAN_ING) AS Cantidad_Total, SUM(CIF_UNI * CAN_ING) / SUM(CAN_ING) AS PromedioPonderadoCostoCIF, cos_uni AS Costo_Real, MAX(fec_ing) AS Fecha_Ingreso, DATEDIFF(CURDATE(), (SELECT MAX(fec_ing) FROM saldos AS s2 WHERE s2.COD_ART = saldos.COD_ART AND s2.ZET_ART = saldos.ZET_ART AND s2.ANIO_PRO = saldos.ANIO_PRO)) AS Dias_Desde_Ingreso, (SELECT SUM(s2.CIF_UNI * s2.CAN_ING) / SUM(s2.CAN_ING) FROM saldos s2 WHERE s2.COD_ART = saldos.COD_ART AND s2.ANIO_PRO = saldos.ANIO_PRO) AS GlobalPromedioCostoCIF FROM saldos WHERE CAST(ANIO_PRO AS SIGNED) = 2025 GROUP BY COD_ART, Marca, SubFamilia, saldos.NomDetSubFam, ZET_ART, ANIO_PRO, DES_INT, UNI_CAJ, cos_uni ORDER BY COD_ART, ANIO_PRO",
-  "args": []
-}</code></pre>
-                <h4>Ejemplo de respuesta (Inventario 2025):</h4>
-                <pre><code>[
-  {
-    "Codigo_Producto": "017J",
-    "MARCA": "POR ASIGNAR",
-    "CATEGORIA": "POR ASIGNAR",
-    "DIMENSIONES": "",
-    "Zeta": "001-14-005079-022",
-    "Anio_Produccion": "2025",
-    "Nombre_Producto": "MOLDURA DE RESINA S/M  ART. J03505-017J",
-    "Packing": 1.0,
-    "Cantidad_Total": 0.0,
-    "PromedioPonderadoCostoCIF": null,
-    "Costo_Real": 2.39,
-    "Fecha_Ingreso": null,
-    "Dias_Desde_Ingreso": null,
-    "GlobalPromedioCostoCIF": null
-  },
-  {
-    "Codigo_Producto": "1100105101",
-    "MARCA": "POR ASIGNAR",
-    "CATEGORIA": "POR ASIGNAR",
-    "DIMENSIONES": "",
-    "Zeta": "534-16-000085-002",
-    "Anio_Produccion": "2025",
-    "Nombre_Producto": "EQUIPO DUAL CORE S/M  DISCO DURO 1 TB, 4 GB RAM, DVDRW, LECTOR TARJETA MULTIMEDIA, TECLADO, MOUSE, P",
-    "Packing": 1.0,
-    "Cantidad_Total": 0.0,
-    "PromedioPonderadoCostoCIF": null,
-    "Costo_Real": 214.63,
-    "Fecha_Ingreso": null,
-    "Dias_Desde_Ingreso": null,
-    "GlobalPromedioCostoCIF": null
-  }
-]</code></pre>
-                <div class="test-button-container info">
-                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="section endpoint-section post">
-            <h2>Exportar a Excel (Genérico)</h2>
-            <div class="endpoint">
-                <div class="method post">POST</div>
-                <div class="path">/api/export/excel</div>
-            </div>
-            <div class="card">
-                <p>Exporta los resultados de una consulta personalizada a un archivo Excel.</p>
+                <p>Exporta el reporte combinado de inventario y ventas a un archivo Excel.</p>
+                <h4>Parámetros:</h4>
+                <ul>
+                    <li><code>anio</code> - Año del inventario (por defecto: año actual)</li>
+                    <li><code>fechaInicio</code> - Fecha de inicio para ventas en formato YYYY-MM-DD</li>
+                    <li><code>fechaFin</code> - Fecha de fin para ventas en formato YYYY-MM-DD</li>
+                    <li><code>sucursal</code> - ID de sucursal para ventas (por defecto: 211)</li>
+                    <li><code>codigo</code> - (Opcional) Código del producto para filtrar</li>
+                </ul>
                 <h4>Ejemplo de solicitud:</h4>
-                <pre><code>{
-  "query": "SELECT TOP 100 * FROM VENTA_BOLETA",
-  "args": [],
-  "database": "sqlserver",
-  "filename": "ventas.xlsx"
-}</code></pre>
-                <div class="test-button-container info">
-                    <span class="info-text">Usa Postman u otra herramienta similar para probar este endpoint POST</span>
+                <pre><code>/api/reporte/combinado/excel?anio=2024&fechaInicio=2024-01-01&fechaFin=2024-12-31&sucursal=211&codigo=CERARA</code></pre>
+                <div class="test-button-container">
+                    <a href="/api/reporte/combinado/excel?anio=2024&fechaInicio=2024-01-01&fechaFin=2024-12-31"
+                        target="_blank" class="test-button">Probar API</a>
                 </div>
             </div>
         </section>
@@ -457,6 +406,38 @@
                             <div class="button-group">
                                 <button type="button" onclick="consultarInventario()">Consultar JSON</button>
                                 <button type="button" onclick="descargarInventarioExcel()">Descargar Excel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="form-column">
+                    <div class="card">
+                        <h3>Consulta de Reporte Combinado</h3>
+                        <form id="reporteForm" class="test-form">
+                            <div class="form-group">
+                                <label for="anioReporte">Año Inventario:</label>
+                                <input type="number" id="anioReporte" value="2024">
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaInicioReporte">Fecha Inicio Ventas:</label>
+                                <input type="date" id="fechaInicioReporte" value="2024-01-01">
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaFinReporte">Fecha Fin Ventas:</label>
+                                <input type="date" id="fechaFinReporte" value="2024-12-31">
+                            </div>
+                            <div class="form-group">
+                                <label for="sucursalReporte">Sucursal:</label>
+                                <input type="number" id="sucursalReporte" value="211">
+                            </div>
+                            <div class="form-group">
+                                <label for="codigoReporte">Código Producto (opcional):</label>
+                                <input type="text" id="codigoReporte" placeholder="Ej: CERARA">
+                            </div>
+                            <div class="button-group">
+                                <button type="button" onclick="consultarReporte()">Consultar JSON</button>
+                                <button type="button" onclick="descargarReporteExcel()">Descargar Excel</button>
                             </div>
                         </form>
                     </div>
@@ -528,6 +509,38 @@
             const anio = document.getElementById('anio').value;
             const codigo = document.getElementById('codigo').value;
             let url = `/api/inventario/excel?anio=${anio}`;
+
+            if (codigo) {
+                url += `&codigo=${encodeURIComponent(codigo)}`;
+            }
+
+            window.open(url, '_blank');
+        }
+
+        function consultarReporte() {
+            const anio = document.getElementById('anioReporte').value;
+            const fechaInicio = document.getElementById('fechaInicioReporte').value;
+            const fechaFin = document.getElementById('fechaFinReporte').value;
+            const sucursal = document.getElementById('sucursalReporte').value;
+            const codigo = document.getElementById('codigoReporte').value;
+
+            let url = `/api/reporte/combinado?anio=${anio}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&sucursal=${sucursal}`;
+
+            if (codigo) {
+                url += `&codigo=${encodeURIComponent(codigo)}`;
+            }
+
+            window.open(url, '_blank');
+        }
+
+        function descargarReporteExcel() {
+            const anio = document.getElementById('anioReporte').value;
+            const fechaInicio = document.getElementById('fechaInicioReporte').value;
+            const fechaFin = document.getElementById('fechaFinReporte').value;
+            const sucursal = document.getElementById('sucursalReporte').value;
+            const codigo = document.getElementById('codigoReporte').value;
+
+            let url = `/api/reporte/combinado/excel?anio=${anio}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&sucursal=${sucursal}`;
 
             if (codigo) {
                 url += `&codigo=${encodeURIComponent(codigo)}`;

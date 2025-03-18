@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pablojnd/rotacion/db"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -40,11 +41,25 @@ func (s *ExcelService) GenerateExcelFromQuery(db interface{}, query string, args
 	return s.GenerateExcel(rows, filename)
 }
 
-// GenerateExcel genera un archivo Excel a partir de filas SQL
-func (s *ExcelService) GenerateExcel(rows *sql.Rows, filename string) ([]byte, error) {
-	columns, err := rows.Columns()
-	if err != nil {
-		return nil, err
+// GenerateExcel genera un archivo Excel a partir de filas SQL o MockRows
+func (s *ExcelService) GenerateExcel(rows interface{}, filename string) ([]byte, error) {
+	var columns []string
+	var err error
+
+	// Determinar el tipo de rows y obtener las columnas
+	switch r := rows.(type) {
+	case *sql.Rows:
+		columns, err = r.Columns()
+		if err != nil {
+			return nil, err
+		}
+	case *db.MockRows:
+		columns, err = r.Columns()
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("tipo de filas no soportado: %T", rows)
 	}
 
 	// Crear un nuevo archivo Excel
@@ -90,66 +105,43 @@ func (s *ExcelService) GenerateExcel(rows *sql.Rows, filename string) ([]byte, e
 
 	// Agregar datos
 	rowIndex := 2 // comenzamos desde la fila 2
-	for rows.Next() {
-		values := make([]interface{}, len(columns))
-		scanArgs := make([]interface{}, len(columns))
 
-		for i := range values {
-			scanArgs[i] = &values[i]
-		}
+	// Procesar filas según el tipo
+	switch r := rows.(type) {
+	case *sql.Rows:
+		for r.Next() {
+			values := make([]interface{}, len(columns))
+			scanArgs := make([]interface{}, len(columns))
 
-		if err := rows.Scan(scanArgs...); err != nil {
-			return nil, err
-		}
-
-		for i := range columns {
-			cell := fmt.Sprintf("%c%d", 'A'+i, rowIndex) // A2, B2, C2, etc.
-
-			if values[i] == nil {
-				f.SetCellValue(sheetName, cell, "")
-			} else {
-				// Manejar formato específico para decimales
-				switch v := values[i].(type) {
-				case float32:
-					// Para valores decimales, formateamos manualmente con coma
-					if needsCommaDecimal(columns[i]) {
-						// Convertir a string con el formato deseado (coma como separador decimal)
-						strValue := formatFloatWithComma(float64(v))
-						// Establecer como texto para preservar la coma
-						f.SetCellStr(sheetName, cell, strValue)
-					} else {
-						f.SetCellValue(sheetName, cell, v)
-					}
-				case float64:
-					// Para valores decimales, formateamos manualmente con coma
-					if needsCommaDecimal(columns[i]) {
-						// Convertir a string con el formato deseado (coma como separador decimal)
-						strValue := formatFloatWithComma(v)
-						// Establecer como texto para preservar la coma
-						f.SetCellStr(sheetName, cell, strValue)
-					} else {
-						f.SetCellValue(sheetName, cell, v)
-					}
-				case []byte:
-					// Verificar si es un número decimal en formato string
-					str := string(v)
-					if strings.Contains(str, ".") && isNumeric(str) && needsCommaDecimal(columns[i]) {
-						// Intentar convertir a float64
-						if floatVal, err := strconv.ParseFloat(str, 64); err == nil {
-							// Convertir de nuevo a string con coma
-							f.SetCellStr(sheetName, cell, formatFloatWithComma(floatVal))
-						} else {
-							f.SetCellValue(sheetName, cell, str)
-						}
-					} else {
-						f.SetCellValue(sheetName, cell, str)
-					}
-				default:
-					f.SetCellValue(sheetName, cell, v)
-				}
+			for i := range values {
+				scanArgs[i] = &values[i]
 			}
+
+			if err := r.Scan(scanArgs...); err != nil {
+				return nil, err
+			}
+
+			// Escribir valores en el Excel
+			s.setCellValues(f, sheetName, rowIndex, columns, values)
+			rowIndex++
 		}
-		rowIndex++
+	case *db.MockRows:
+		for r.Next() {
+			values := make([]interface{}, len(columns))
+			scanArgs := make([]interface{}, len(columns))
+
+			for i := range values {
+				scanArgs[i] = &values[i]
+			}
+
+			if err := r.Scan(scanArgs...); err != nil {
+				return nil, err
+			}
+
+			// Escribir valores en el Excel
+			s.setCellValues(f, sheetName, rowIndex, columns, values)
+			rowIndex++
+		}
 	}
 
 	// Auto-ajustar columnas
@@ -165,6 +157,57 @@ func (s *ExcelService) GenerateExcel(rows *sql.Rows, filename string) ([]byte, e
 	}
 
 	return buffer.Bytes(), nil
+}
+
+// setCellValues escribe los valores en las celdas del Excel con formato adecuado
+func (s *ExcelService) setCellValues(f *excelize.File, sheetName string, rowIndex int, columns []string, values []interface{}) {
+	for i := range columns {
+		cell := fmt.Sprintf("%c%d", 'A'+i, rowIndex) // A2, B2, C2, etc.
+
+		if values[i] == nil {
+			f.SetCellValue(sheetName, cell, "")
+		} else {
+			// Manejar formato específico para decimales
+			switch v := values[i].(type) {
+			case float32:
+				// Para valores decimales, formateamos manualmente con coma
+				if needsCommaDecimal(columns[i]) {
+					// Convertir a string con el formato deseado (coma como separador decimal)
+					strValue := formatFloatWithComma(float64(v))
+					// Establecer como texto para preservar la coma
+					f.SetCellStr(sheetName, cell, strValue)
+				} else {
+					f.SetCellValue(sheetName, cell, v)
+				}
+			case float64:
+				// Para valores decimales, formateamos manualmente con coma
+				if needsCommaDecimal(columns[i]) {
+					// Convertir a string con el formato deseado (coma como separador decimal)
+					strValue := formatFloatWithComma(v)
+					// Establecer como texto para preservar la coma
+					f.SetCellStr(sheetName, cell, strValue)
+				} else {
+					f.SetCellValue(sheetName, cell, v)
+				}
+			case []byte:
+				// Verificar si es un número decimal en formato string
+				str := string(v)
+				if strings.Contains(str, ".") && isNumeric(str) && needsCommaDecimal(columns[i]) {
+					// Intentar convertir a float64
+					if floatVal, err := strconv.ParseFloat(str, 64); err == nil {
+						// Convertir de nuevo a string con coma
+						f.SetCellStr(sheetName, cell, formatFloatWithComma(floatVal))
+					} else {
+						f.SetCellValue(sheetName, cell, str)
+					}
+				} else {
+					f.SetCellValue(sheetName, cell, str)
+				}
+			default:
+				f.SetCellValue(sheetName, cell, v)
+			}
+		}
+	}
 }
 
 // needsCommaDecimal determina si la columna debería usar coma como separador decimal
@@ -187,6 +230,15 @@ func needsCommaDecimal(columnName string) bool {
 		"Costo Promedio Unitario (CLP)",
 		"Unidades por Caja",
 		"Total Unidades Ingresadas",
+
+		// Columnas para reporte combinado
+		"CIF PROMEDIO USD",
+		"CIF PROMEDIO CLP",
+		"CANTIDAD INGRESADA",
+		"PACKING",
+		"CANTIDAD VENDIDA",
+		"% VENDIDO",
+		"UTILIDAD CLP",
 	}
 
 	for _, col := range decimalColumns {

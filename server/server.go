@@ -39,8 +39,20 @@ func (s *Server) setupRoutes() {
 	ventasService := services.NewVentasService(s.sqlServer, excelService)
 	inventarioService := services.NewInventarioService(s.mysql, excelService)
 
+	// Crear el servicio de reportes combinados
+	reporteService := services.NewReporteService(
+		s.sqlServer,
+		s.mysql,
+		ventasService,
+		inventarioService,
+		excelService,
+	)
+
 	// Crear handlers para la API
 	handlers := api.NewHandlers(s.sqlServer, s.mysql)
+
+	// Crear handler para reportes combinados
+	reporteHandlers := api.NewReporteHandlers(reporteService)
 
 	// Crear handler para Excel
 	excelHandler := excel.NewHandler(
@@ -77,6 +89,10 @@ func (s *Server) setupRoutes() {
 	// Ruta para inventario
 	apiRouter.HandleFunc("/inventario", handlers.GetInventario).Methods("GET")
 	apiRouter.HandleFunc("/inventario/excel", excelHandler.ExportInventario).Methods("GET")
+
+	// Nuevas rutas para reporte combinado
+	apiRouter.HandleFunc("/reporte/combinado", reporteHandlers.ObtenerReporteCombinado).Methods("GET")
+	apiRouter.HandleFunc("/reporte/combinado/excel", reporteHandlers.ExportarReporteCombinado).Methods("GET")
 
 	// Exportar a Excel
 	apiRouter.HandleFunc("/export/excel", excelHandler.ExportGeneric).Methods("POST")
