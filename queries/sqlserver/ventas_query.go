@@ -1,21 +1,22 @@
 package sqlserver
 
-// GetVentasQuery devuelve la consulta SQL para obtener información de ventas
+// GetVentasQuery devuelve la consulta SQL para obtener información de ventas detalladas
 func GetVentasQuery() string {
 	return `
-WITH Documentos AS (
+WITH VentasBase AS (
     -- BOLETAS
     SELECT 
         VB.FECHA_VENTA AS FechaDocumento,
         VB.ID_SUCURSAL AS Sucursal,
-        PR.NOMBRE_PRODUCTO AS Producto,
-        ROUND(z.COSTO_UNITARIO, 2) AS CostoUnitario,
-        PR.PRECIO_VENTA AS PrecioProducto,
-        PR.PRECIO_OFERTA AS PrecioOferta,
-        DB.VALORUNITARIO AS PrecioVenta,
-        DB.CANTIDAD AS CantidadVendida,
-        CASE WHEN VB.NULA = 1 THEN 0 ELSE VB.TOTAL END AS TotalDocumento,
         PR.CODIGO_INTERNO AS CodigoProducto,
+        PR.NOMBRE_PRODUCTO AS NombreProducto,
+        ROUND(z.COSTO_UNITARIO, 2) AS CostoUnitarioUSD,
+        PR.PRECIO_VENTA AS PrecioBaseCLP,
+        PR.PRECIO_OFERTA AS PrecioOfertaCLP,
+        DB.VALORUNITARIO AS PrecioVentaCLP,
+        DB.CANTIDAD AS CantidadVendida,
+        CASE WHEN VB.NULA = 1 THEN 0 ELSE DB.TOTAL END AS TotalProductoCLP,
+        CASE WHEN VB.NULA = 1 THEN 0 ELSE VB.TOTAL END AS TotalDocumentoCLP,
         'BOLETA' AS TipoDocumento,
         CAST(VB.CORRELATIVO AS VARCHAR(20)) AS CodigoDocumento,
         ISNULL(PCLI.NOMBRE_P + ' ' + PCLI.APELLIDOPATERNO_P, 'Sin Cliente') AS Cliente
@@ -39,14 +40,15 @@ WITH Documentos AS (
     SELECT 
         VF.FECHA_EMISION AS FechaDocumento,
         VF.ID_SUCURSAL AS Sucursal,
-        PR.NOMBRE_PRODUCTO AS Producto,
-        ROUND(z.COSTO_UNITARIO, 2) AS CostoUnitario,
-        PR.PRECIO_VENTA AS PrecioProducto,
-        PR.PRECIO_OFERTA AS PrecioOferta,
-        DF.VALORUNITARIO AS PrecioVenta,
-        DF.CANTIDAD AS CantidadVendida,
-        CASE WHEN VF.NULA = 1 THEN 0 ELSE VF.TOTAL END AS TotalDocumento,
         PR.CODIGO_INTERNO AS CodigoProducto,
+        PR.NOMBRE_PRODUCTO AS NombreProducto,
+        ROUND(z.COSTO_UNITARIO, 2) AS CostoUnitarioUSD,
+        PR.PRECIO_VENTA AS PrecioBaseCLP,
+        PR.PRECIO_OFERTA AS PrecioOfertaCLP,
+        DF.VALORUNITARIO AS PrecioVentaCLP,
+        DF.CANTIDAD AS CantidadVendida,
+        CASE WHEN VF.NULA = 1 THEN 0 ELSE DF.TOTAL END AS TotalProductoCLP,
+        CASE WHEN VF.NULA = 1 THEN 0 ELSE VF.TOTAL END AS TotalDocumentoCLP,
         'FACTURA' AS TipoDocumento,
         CAST(VF.CORRELATIVO AS VARCHAR(20)) AS CodigoDocumento,
         ISNULL(PCLIF.NOMBRE_P + ' ' + PCLIF.APELLIDOPATERNO_P, 'Sin Cliente') AS Cliente
@@ -64,54 +66,56 @@ WITH Documentos AS (
         VF.FECHA_EMISION BETWEEN ? AND ? AND
         VF.ID_SUCURSAL = ?
 ),
-Calculos AS (
+CalculosProducto AS (
     SELECT 
         CodigoProducto,
         ROUND(
-            SUM(PrecioVenta * CantidadVendida) / NULLIF(SUM(CantidadVendida), 0),
+            SUM(PrecioVentaCLP * CantidadVendida) / NULLIF(SUM(CantidadVendida), 0),
             2
-        ) AS PrecioPromedio,
-        COUNT(*) AS CantidadDeVentas
-    FROM Documentos
+        ) AS PrecioPromedioCLP,
+        COUNT(*) AS CantidadTransacciones
+    FROM VentasBase
     GROUP BY CodigoProducto
 )
 SELECT 
-    d.CodigoDocumento,
-    d.FechaDocumento AS Fecha_Emision,
-    d.TipoDocumento AS Tipo_Documento,
-    d.Cliente,
-    d.CodigoProducto AS Codigo_Producto,
-    d.Producto,
-    d.CantidadVendida AS Cantidad,
-    d.PrecioVenta AS Precio_Unitario,
-    d.TotalDocumento AS Total_Venta,
-    d.Sucursal,
-    d.CostoUnitario,
-    d.PrecioProducto,
-    d.PrecioOferta,
-    c.PrecioPromedio,
-    c.CantidadDeVentas
-FROM Documentos d
-INNER JOIN Calculos c ON d.CodigoProducto = c.CodigoProducto
-WHERE (? = '' OR d.CodigoProducto LIKE '%' + ? + '%')
-ORDER BY d.FechaDocumento DESC
+    v.CodigoDocumento AS "Código Documento",
+    v.FechaDocumento AS "Fecha Emisión",
+    v.TipoDocumento AS "Tipo Documento",
+    v.Cliente AS "Cliente",
+    v.CodigoProducto AS "Código Producto",
+    v.NombreProducto AS "Producto",
+    v.CantidadVendida AS "Cantidad",
+    v.PrecioVentaCLP AS "Precio Unitario (CLP)",
+    v.TotalProductoCLP AS "Total Venta (CLP)",
+    v.Sucursal AS "Sucursal",
+    v.CostoUnitarioUSD AS "Costo Unitario (USD)",
+    v.PrecioBaseCLP AS "Precio Base (CLP)",
+    v.PrecioOfertaCLP AS "Precio Oferta (CLP)",
+    c.PrecioPromedioCLP AS "Precio Promedio (CLP)",
+    c.CantidadTransacciones AS "Cant. Transacciones"
+FROM VentasBase v
+INNER JOIN CalculosProducto c ON v.CodigoProducto = c.CodigoProducto
+WHERE (? = '' OR v.CodigoProducto LIKE '%' + ? + '%')
+ORDER BY v.FechaDocumento DESC
 `
 }
 
 // GetVentasAgrupadasQuery devuelve la consulta SQL para obtener ventas agrupadas por producto
 func GetVentasAgrupadasQuery() string {
 	return `
-WITH VentasAgrupadas AS (
+WITH VentasBase AS (
     -- BOLETAS
     SELECT 
+        VB.FECHA_VENTA AS FechaDocumento,
+        VB.ID_SUCURSAL AS Sucursal,
         PR.CODIGO_INTERNO AS CodigoProducto,
-        MAX(PR.NOMBRE_PRODUCTO) AS Producto,
-        MAX(ROUND(z.COSTO_UNITARIO, 2)) AS CostoUnitario,
-        MAX(PR.PRECIO_VENTA) AS PrecioProducto,
-        MAX(PR.PRECIO_OFERTA) AS PrecioOferta,
-        SUM(DB.CANTIDAD) AS CantidadVendida,
-        SUM(CASE WHEN VB.NULA = 1 THEN 0 ELSE VB.TOTAL END) AS TotalDocumento,
-        MAX(VB.FECHA_VENTA) AS UltimaFechaVenta
+        PR.NOMBRE_PRODUCTO AS NombreProducto,
+        ROUND(z.COSTO_UNITARIO, 2) AS CostoUnitarioUSD, -- Asumiendo que el costo está en USD
+        PR.PRECIO_VENTA AS PrecioBaseCLP, -- Precio base en CLP
+        PR.PRECIO_OFERTA AS PrecioOfertaCLP, -- Precio de oferta en CLP
+        DB.VALORUNITARIO AS PrecioVentaCLP, -- Precio real de venta en CLP
+        DB.CANTIDAD AS CantidadVendida,
+        CASE WHEN VB.NULA = 1 THEN 0 ELSE VB.TOTAL END AS TotalDocumentoCLP
     FROM VENTA_BOLETA VB
     INNER JOIN DETALLE_VENTA_BOLETA DB ON VB.ID_VENTA_BOLETA = DB.ID_VENTA_BOLETA
     INNER JOIN PRODUCTO PR ON DB.ID_PRODUCTO = PR.ID_PRODUCTO
@@ -123,20 +127,21 @@ WITH VentasAgrupadas AS (
     WHERE 
         VB.FECHA_VENTA BETWEEN ? AND ? AND
         VB.ID_SUCURSAL = ?
-    GROUP BY PR.CODIGO_INTERNO
 
     UNION ALL
 
     -- FACTURAS
     SELECT 
+        VF.FECHA_EMISION AS FechaDocumento,
+        VF.ID_SUCURSAL AS Sucursal,
         PR.CODIGO_INTERNO AS CodigoProducto,
-        MAX(PR.NOMBRE_PRODUCTO) AS Producto,
-        MAX(ROUND(z.COSTO_UNITARIO, 2)) AS CostoUnitario,
-        MAX(PR.PRECIO_VENTA) AS PrecioProducto,
-        MAX(PR.PRECIO_OFERTA) AS PrecioOferta,
-        SUM(DF.CANTIDAD) AS CantidadVendida,
-        SUM(CASE WHEN VF.NULA = 1 THEN 0 ELSE VF.TOTAL END) AS TotalDocumento,
-        MAX(VF.FECHA_EMISION) AS UltimaFechaVenta
+        PR.NOMBRE_PRODUCTO AS NombreProducto,
+        ROUND(z.COSTO_UNITARIO, 2) AS CostoUnitarioUSD,
+        PR.PRECIO_VENTA AS PrecioBaseCLP,
+        PR.PRECIO_OFERTA AS PrecioOfertaCLP,
+        DF.VALORUNITARIO AS PrecioVentaCLP,
+        DF.CANTIDAD AS CantidadVendida,
+        CASE WHEN VF.NULA = 1 THEN 0 ELSE VF.TOTAL END AS TotalDocumentoCLP
     FROM VENTA_FACTURA VF
     INNER JOIN DETALLE_FAC_E DF ON VF.ID_VENTA_FACTURA = DF.ID_VENTA_FACTURA
     INNER JOIN PRODUCTO PR ON DF.ID_PRODUCTO = PR.ID_PRODUCTO
@@ -148,38 +153,41 @@ WITH VentasAgrupadas AS (
     WHERE 
         VF.FECHA_EMISION BETWEEN ? AND ? AND
         VF.ID_SUCURSAL = ?
-    GROUP BY PR.CODIGO_INTERNO
 ),
-CalculosFinales AS (
+Resumen AS (
     SELECT 
         CodigoProducto,
-        MAX(Producto) AS Producto,
-        MAX(CostoUnitario) AS CostoUnitario,
-        MAX(PrecioProducto) AS PrecioProducto,
-        MAX(PrecioOferta) AS PrecioOferta,
-        SUM(CantidadVendida) AS CantidadVendidaTotal,
-        SUM(TotalDocumento) AS TotalVentas,
-        MAX(UltimaFechaVenta) AS UltimaFechaVenta,
+        MAX(NombreProducto) AS NombreProducto,
+        MAX(CostoUnitarioUSD) AS CostoUnitarioUSD,
+        MAX(PrecioBaseCLP) AS PrecioBaseCLP,
+        MAX(PrecioOfertaCLP) AS PrecioOfertaCLP,
+        SUM(CantidadVendida) AS CantidadTotalVendida,
+        SUM(TotalDocumentoCLP) AS TotalVentasCLP,
+        MAX(FechaDocumento) AS UltimaFechaVenta,
         ROUND(
-            SUM(PrecioProducto * CantidadVendida) / NULLIF(SUM(CantidadVendida), 0),
+            SUM(PrecioVentaCLP * CantidadVendida) / NULLIF(SUM(CantidadVendida), 0),
             2
-        ) AS PrecioPromedio,
+        ) AS PrecioPromedioPonderadoCLP,
+        MIN(PrecioVentaCLP) AS PrecioMinimoCLP,
+        MAX(PrecioVentaCLP) AS PrecioMaximoCLP,
         COUNT(*) AS CantidadDeVentas
-    FROM VentasAgrupadas
+    FROM VentasBase
     GROUP BY CodigoProducto
 )
 SELECT 
-    CodigoProducto,
-    Producto,
-    CostoUnitario,
-    PrecioProducto,
-    PrecioOferta,
-    CantidadVendidaTotal,
-    TotalVentas,
-    PrecioPromedio,
-    CantidadDeVentas,
-    UltimaFechaVenta
-FROM CalculosFinales
+    CodigoProducto AS "Código de Producto",
+    NombreProducto AS "Nombre del Producto",
+    CostoUnitarioUSD AS "Costo Unitario (USD)",
+    PrecioBaseCLP AS "Precio Base (CLP)",
+    PrecioOfertaCLP AS "Precio de Oferta (CLP)",
+    CantidadTotalVendida AS "Cantidad Total Vendida",
+    TotalVentasCLP AS "Total Ventas (CLP)",
+    UltimaFechaVenta AS "Última Fecha de Venta",
+    PrecioPromedioPonderadoCLP AS "Precio Promedio Ponderado (CLP)",
+    PrecioMinimoCLP AS "Precio Mínimo (CLP)",
+    PrecioMaximoCLP AS "Precio Máximo (CLP)",
+    CantidadDeVentas AS "Cantidad de Ventas Registradas"
+FROM Resumen
 WHERE (? = '' OR CodigoProducto LIKE '%' + ? + '%')
 ORDER BY CodigoProducto
 `

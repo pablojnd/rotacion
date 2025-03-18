@@ -26,16 +26,18 @@ type Venta struct {
 
 // VentaAgrupada representa la información consolidada de ventas por producto
 type VentaAgrupada struct {
-	CodigoProducto       string  `json:"codigoProducto"`
-	Producto             string  `json:"producto"`
-	CostoUnitario        float64 `json:"costoUnitario"`
-	PrecioProducto       float64 `json:"precioProducto"`
-	PrecioOferta         float64 `json:"precioOferta"`
-	CantidadVendidaTotal float64 `json:"cantidadVendidaTotal"`
-	TotalVentas          float64 `json:"totalVentas"`
-	PrecioPromedio       float64 `json:"precioPromedio"`
-	CantidadDeVentas     int     `json:"cantidadDeVentas"`
-	UltimaFechaVenta     string  `json:"ultimaFechaVenta"`
+	CodigoProducto             string  `json:"codigoProducto"`
+	NombreProducto             string  `json:"nombreProducto"`
+	CostoUnitarioUSD           float64 `json:"costoUnitarioUSD"`
+	PrecioBaseCLP              int     `json:"precioBaseCLP"`
+	PrecioOfertaCLP            int     `json:"precioOfertaCLP"`
+	CantidadTotalVendida       float64 `json:"cantidadTotalVendida"`
+	TotalVentasCLP             int     `json:"totalVentasCLP"`
+	UltimaFechaVenta           string  `json:"ultimaFechaVenta"`
+	PrecioPromedioPonderadoCLP int     `json:"precioPromedioPonderadoCLP"`
+	PrecioMinimoCLP            int     `json:"precioMinimoCLP"`
+	PrecioMaximoCLP            int     `json:"precioMaximoCLP"`
+	CantidadDeVentas           int     `json:"cantidadDeVentas"`
 }
 
 // VentasFiltro define los filtros para consultar ventas

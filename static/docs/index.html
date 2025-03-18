@@ -76,23 +76,23 @@
                 </ul>
                 <h4>Ejemplo de solicitud:</h4>
                 <pre><code>/api/ventas?fechaInicio=2025-01-01&fechaFin=2025-01-31&sucursal=211&codigo=ABC123</code></pre>
-                <h4>Ejemplo de respuesta:</h4>
+                <h4>Ejemplo de respuesta (Venta Detallada):</h4>
                 <pre><code>{
-  "CodigoDocumento": "12345",
-  "Fecha_Emision": "2025-01-15",
-  "Tipo_Documento": "BOLETA",
+  "Código Documento": "12345",
+  "Fecha Emisión": "2025-01-15",
+  "Tipo Documento": "BOLETA",
   "Cliente": "Juan Pérez",
-  "Codigo_Producto": "PROD123",
+  "Código Producto": "PROD123",
   "Producto": "Producto de ejemplo",
   "Cantidad": 2,
-  "Precio_Unitario": 10.99,
-  "Total_Venta": 21.98,
+  "Precio Unitario (CLP)": 10990,
+  "Total Venta (CLP)": 21980,
   "Sucursal": 211,
-  "CostoUnitario": 5.5,
-  "PrecioProducto": 12.99,
-  "PrecioOferta": 10.99,
-  "PrecioPromedio": 11.25,
-  "CantidadDeVentas": 15
+  "Costo Unitario (USD)": 5.5,
+  "Precio Base (CLP)": 12990,
+  "Precio Oferta (CLP)": 10990,
+  "Precio Promedio (CLP)": 11250,
+  "Cant. Transacciones": 15
 }</code></pre>
                 <div class="test-button-container">
                     <a href="/api/ventas?fechaInicio=2025-01-01&fechaFin=2025-01-31&sucursal=211" target="_blank"
@@ -118,18 +118,20 @@
                 </ul>
                 <h4>Ejemplo de solicitud:</h4>
                 <pre><code>/api/ventas/agrupadas?fechaInicio=2025-01-01&fechaFin=2025-01-31&sucursal=211&codigo=ABC123</code></pre>
-                <h4>Ejemplo de respuesta:</h4>
+                <h4>Ejemplo de respuesta (Ventas Agrupadas):</h4>
                 <pre><code>{
-  "CodigoProducto": "PROD123",
-  "Producto": "Producto de ejemplo",
-  "CostoUnitario": 5.5,
-  "PrecioProducto": 12.99,
-  "PrecioOferta": 10.99,
-  "CantidadVendidaTotal": 25,
-  "TotalVentas": 274.75,
-  "PrecioPromedio": 10.99,
-  "CantidadDeVentas": 5,
-  "UltimaFechaVenta": "2025-01-15"
+  "Código de Producto": "PROD123",
+  "Nombre del Producto": "Producto de ejemplo",
+  "Costo Unitario (USD)": 5.5,
+  "Precio Base (CLP)": 12990,
+  "Precio de Oferta (CLP)": 10990,
+  "Cantidad Total Vendida": 25,
+  "Total Ventas (CLP)": 274750,
+  "Última Fecha de Venta": "2025-01-15",
+  "Precio Promedio Ponderado (CLP)": 10990,
+  "Precio Mínimo (CLP)": 9990,
+  "Precio Máximo (CLP)": 12990,
+  "Cantidad de Ventas Registradas": 5
 }</code></pre>
                 <div class="test-button-container">
                     <a href="/api/ventas/agrupadas?fechaInicio=2025-01-01&fechaFin=2025-01-31&sucursal=211"
