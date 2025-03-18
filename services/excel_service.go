@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -102,10 +104,49 @@ func (s *ExcelService) GenerateExcel(rows *sql.Rows, filename string) ([]byte, e
 
 		for i := range columns {
 			cell := fmt.Sprintf("%c%d", 'A'+i, rowIndex) // A2, B2, C2, etc.
+
 			if values[i] == nil {
 				f.SetCellValue(sheetName, cell, "")
 			} else {
-				f.SetCellValue(sheetName, cell, values[i])
+				// Manejar formato específico para decimales
+				switch v := values[i].(type) {
+				case float32:
+					// Para valores decimales, formateamos manualmente con coma
+					if needsCommaDecimal(columns[i]) {
+						// Convertir a string con el formato deseado (coma como separador decimal)
+						strValue := formatFloatWithComma(float64(v))
+						// Establecer como texto para preservar la coma
+						f.SetCellStr(sheetName, cell, strValue)
+					} else {
+						f.SetCellValue(sheetName, cell, v)
+					}
+				case float64:
+					// Para valores decimales, formateamos manualmente con coma
+					if needsCommaDecimal(columns[i]) {
+						// Convertir a string con el formato deseado (coma como separador decimal)
+						strValue := formatFloatWithComma(v)
+						// Establecer como texto para preservar la coma
+						f.SetCellStr(sheetName, cell, strValue)
+					} else {
+						f.SetCellValue(sheetName, cell, v)
+					}
+				case []byte:
+					// Verificar si es un número decimal en formato string
+					str := string(v)
+					if strings.Contains(str, ".") && isNumeric(str) && needsCommaDecimal(columns[i]) {
+						// Intentar convertir a float64
+						if floatVal, err := strconv.ParseFloat(str, 64); err == nil {
+							// Convertir de nuevo a string con coma
+							f.SetCellStr(sheetName, cell, formatFloatWithComma(floatVal))
+						} else {
+							f.SetCellValue(sheetName, cell, str)
+						}
+					} else {
+						f.SetCellValue(sheetName, cell, str)
+					}
+				default:
+					f.SetCellValue(sheetName, cell, v)
+				}
 			}
 		}
 		rowIndex++
@@ -124,6 +165,43 @@ func (s *ExcelService) GenerateExcel(rows *sql.Rows, filename string) ([]byte, e
 	}
 
 	return buffer.Bytes(), nil
+}
+
+// needsCommaDecimal determina si la columna debería usar coma como separador decimal
+func needsCommaDecimal(columnName string) bool {
+	// Columnas que necesitan formato decimal con coma
+	decimalColumns := []string{
+		"Costo Unitario (USD)",
+		"Cantidad Total Vendida",
+		"Cantidad",
+		"CostoUnitarioUSD",
+		"CantidadTotalVendida",
+		"CantidadVendida",
+		"Unidades_Por_Paquete",
+		"Promedio_Costo_CIF",
+		"Costo_Promedio_IKA",
+	}
+
+	for _, col := range decimalColumns {
+		if columnName == col {
+			return true
+		}
+	}
+	return false
+}
+
+// formatFloatWithComma formatea un float con coma como separador decimal
+func formatFloatWithComma(value float64) string {
+	// Formatear con 2 decimales
+	str := strconv.FormatFloat(value, 'f', 2, 64)
+	// Reemplazar punto por coma
+	return strings.Replace(str, ".", ",", 1)
+}
+
+// isNumeric verifica si una cadena es numérica
+func isNumeric(s string) bool {
+	_, err := strconv.ParseFloat(s, 64)
+	return err == nil
 }
 
 // SendExcelResponse envía un archivo Excel como respuesta HTTP

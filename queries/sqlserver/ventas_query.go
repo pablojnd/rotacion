@@ -69,9 +69,11 @@ WITH VentasBase AS (
 CalculosProducto AS (
     SELECT 
         CodigoProducto,
-        ROUND(
-            SUM(PrecioVentaCLP * CantidadVendida) / NULLIF(SUM(CantidadVendida), 0),
-            2
+        CAST(
+            ROUND(
+                SUM(PrecioVentaCLP * CantidadVendida) / NULLIF(SUM(CantidadVendida), 0),
+                0
+            ) AS INT
         ) AS PrecioPromedioCLP,
         COUNT(*) AS CantidadTransacciones
     FROM VentasBase
@@ -164,9 +166,11 @@ Resumen AS (
         SUM(CantidadVendida) AS CantidadTotalVendida,
         SUM(TotalDocumentoCLP) AS TotalVentasCLP,
         MAX(FechaDocumento) AS UltimaFechaVenta,
-        ROUND(
-            SUM(PrecioVentaCLP * CantidadVendida) / NULLIF(SUM(CantidadVendida), 0),
-            2
+        CAST(
+            ROUND(
+                SUM(PrecioVentaCLP * CantidadVendida) / NULLIF(SUM(CantidadVendida), 0),
+                0
+            ) AS INT
         ) AS PrecioPromedioPonderadoCLP,
         MIN(PrecioVentaCLP) AS PrecioMinimoCLP,
         MAX(PrecioVentaCLP) AS PrecioMaximoCLP,
