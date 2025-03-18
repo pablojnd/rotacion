@@ -93,9 +93,10 @@ func (h *Handlers) MySQLQuery(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) GetVentas(w http.ResponseWriter, r *http.Request) {
 	// Obtener parámetros de la consulta
 	filtro := models.VentasFiltro{
-		FechaInicio: r.URL.Query().Get("fechaInicio"),
-		FechaFin:    r.URL.Query().Get("fechaFin"),
-		Sucursal:    parseIntParam(r.URL.Query().Get("sucursal"), 211),
+		FechaInicio:    r.URL.Query().Get("fechaInicio"),
+		FechaFin:       r.URL.Query().Get("fechaFin"),
+		Sucursal:       parseIntParam(r.URL.Query().Get("sucursal"), 211),
+		CodigoProducto: r.URL.Query().Get("codigo"),
 	}
 
 	// Usar el servicio para obtener los datos
@@ -115,9 +116,11 @@ func (h *Handlers) GetVentas(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) GetInventario(w http.ResponseWriter, r *http.Request) {
 	// Obtener parámetros de la consulta
 	anio := parseIntParam(r.URL.Query().Get("anio"), time.Now().Year())
+	codigoProducto := r.URL.Query().Get("codigo")
 
 	filtro := models.InventarioFiltro{
-		Anio: anio,
+		Anio:           anio,
+		CodigoProducto: codigoProducto,
 	}
 
 	// Usar el servicio para obtener los datos

@@ -34,7 +34,10 @@ func (s *InventarioService) GetInventario(filtro models.InventarioFiltro) ([]map
 	query := mysql.GetInventarioQuery()
 
 	// Ejecutar la consulta con los parámetros
-	rows, err := s.mysql.ExecuteQuery(query, filtro.Anio)
+	rows, err := s.mysql.ExecuteQuery(query,
+		filtro.Anio,
+		filtro.CodigoProducto,
+		filtro.CodigoProducto) // pasamos dos veces para el CONCAT en la consulta
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +82,10 @@ func (s *InventarioService) ExportInventarioToExcel(filtro models.InventarioFilt
 
 	// Obtener y ejecutar la consulta
 	query := mysql.GetInventarioQuery()
-	rows, err := s.mysql.ExecuteQuery(query, filtro.Anio)
+	rows, err := s.mysql.ExecuteQuery(query,
+		filtro.Anio,
+		filtro.CodigoProducto,
+		filtro.CodigoProducto) // pasamos dos veces para el CONCAT en la consulta
 	if err != nil {
 		return nil, "", err
 	}
@@ -96,5 +102,9 @@ func (s *InventarioService) ExportInventarioToExcel(filtro models.InventarioFilt
 
 // generateInventarioFilename genera un nombre de archivo para el reporte de inventario
 func generateInventarioFilename(filtro models.InventarioFiltro) string {
-	return "Inventario_" + string(filtro.Anio) + ".xlsx"
+	base := "Inventario_" + string(filtro.Anio)
+	if filtro.CodigoProducto != "" {
+		base += "_" + filtro.CodigoProducto
+	}
+	return base + ".xlsx"
 }

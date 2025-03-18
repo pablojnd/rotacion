@@ -58,6 +58,7 @@ ROUND(
 FROM saldos s
 WHERE
     CAST(ANIO_PRO AS SIGNED) = ?
+    AND (? = '' OR COD_ART LIKE CONCAT('%', ?, '%'))
 GROUP BY
     COD_ART,
     UNI_CAJ

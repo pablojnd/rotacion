@@ -31,11 +31,11 @@ func (s *VentasService) GetVentas(filtro models.VentasFiltro) ([]map[string]inte
 	// Obtener la consulta SQL
 	query := sqlserver.GetVentasQuery()
 
-	// Ejecutar la consulta con los parámetros
+	// Ejecutar la consulta con los parámetros - adaptado para la nueva consulta
 	rows, err := s.sqlServer.ExecuteQuery(query,
-		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Parámetros para BoletasConsolidadas
-		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Parámetros para FacturasConsolidadas
-		filtro.Sucursal, filtro.FechaInicio, filtro.FechaFin) // Parámetros para la consulta final
+		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para BoletasConsolidadas
+		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para FacturasConsolidadas
+		filtro.CodigoProducto, filtro.CodigoProducto) // Para el filtrado por código
 
 	if err != nil {
 		return nil, err
@@ -64,9 +64,9 @@ func (s *VentasService) ExportVentasToExcel(filtro models.VentasFiltro) ([]byte,
 	// Obtener y ejecutar la consulta
 	query := sqlserver.GetVentasQuery()
 	rows, err := s.sqlServer.ExecuteQuery(query,
-		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Parámetros para BoletasConsolidadas
-		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Parámetros para FacturasConsolidadas
-		filtro.Sucursal, filtro.FechaInicio, filtro.FechaFin) // Parámetros para la consulta final
+		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para BoletasConsolidadas
+		filtro.FechaInicio, filtro.FechaFin, filtro.Sucursal, // Para FacturasConsolidadas
+		filtro.CodigoProducto, filtro.CodigoProducto) // Para el filtrado por código
 
 	if err != nil {
 		return nil, "", err
@@ -84,5 +84,9 @@ func (s *VentasService) ExportVentasToExcel(filtro models.VentasFiltro) ([]byte,
 
 // generateVentasFilename genera un nombre de archivo para el reporte de ventas
 func generateVentasFilename(filtro models.VentasFiltro) string {
-	return "Ventas_Sucursal_" + string(filtro.Sucursal) + "_" + filtro.FechaInicio + "_al_" + filtro.FechaFin + ".xlsx"
+	base := "Ventas_Sucursal_" + string(filtro.Sucursal) + "_" + filtro.FechaInicio + "_al_" + filtro.FechaFin
+	if filtro.CodigoProducto != "" {
+		base += "_Producto_" + filtro.CodigoProducto
+	}
+	return base + ".xlsx"
 }

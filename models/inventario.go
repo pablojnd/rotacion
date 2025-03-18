@@ -31,7 +31,8 @@ type MetadatoProducto struct {
 
 // InventarioFiltro define los filtros para consultar inventario
 type InventarioFiltro struct {
-	Anio int `json:"anio"`
+	Anio           int    `json:"anio"`
+	CodigoProducto string `json:"codigoProducto"` // Nuevo campo para filtrar por código
 }
 
 // Validar valida los parámetros del filtro
