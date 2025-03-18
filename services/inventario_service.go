@@ -51,10 +51,10 @@ func (s *InventarioService) GetInventario(filtro models.InventarioFiltro) ([]map
 		return nil, err
 	}
 
-	// Procesar los metadatos JSON y las dimensiones
+	// Procesar los metadatos JSON
 	for i := range result {
-		// Procesar metadatos JSON
-		if metadataJSON, ok := result[i]["Metadatos_JSON"].(string); ok {
+		// Procesar metadatos JSON (ahora llamado "Historial de Ingresos (JSON)")
+		if metadataJSON, ok := result[i]["Historial de Ingresos (JSON)"].(string); ok {
 			// Arreglar las comillas simples en el JSON
 			fixedJSON := utils.FixJSONQuotes(metadataJSON)
 
@@ -62,19 +62,19 @@ func (s *InventarioService) GetInventario(filtro models.InventarioFiltro) ([]map
 			var metadata []interface{}
 			if err := json.Unmarshal([]byte(fixedJSON), &metadata); err == nil {
 				// Si el análisis tiene éxito, reemplazar el string con el objeto JSON analizado
-				result[i]["Metadatos_JSON"] = metadata
+				result[i]["Historial de Ingresos (JSON)"] = metadata
 			} else {
 				// Si hay error, mantener el string arreglado
-				result[i]["Metadatos_JSON"] = fixedJSON
+				result[i]["Historial de Ingresos (JSON)"] = fixedJSON
 			}
 		}
 
-		// Procesar dimensiones si es necesario
-		if dimensiones, ok := result[i]["DIMENSIONES"].(string); ok {
+		// Procesar dimensiones si es necesario (adaptado a los nuevos nombres)
+		if dimensiones, ok := result[i]["Subcategoría/Dimensiones"].(string); ok {
 			if dimensiones == "POR ASIGNAR" || dimensiones == "Sin Asignar" || dimensiones == "" {
-				if nombreProducto, ok := result[i]["Nombre_Producto"].(string); ok {
+				if nombreProducto, ok := result[i]["Nombre Aduanero"].(string); ok {
 					// Extraer dimensiones del nombre del producto
-					result[i]["DIMENSIONES"] = extractDimensionsFromName(nombreProducto)
+					result[i]["Subcategoría/Dimensiones"] = extractDimensionsFromName(nombreProducto)
 				}
 			}
 		}

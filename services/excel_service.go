@@ -171,6 +171,7 @@ func (s *ExcelService) GenerateExcel(rows *sql.Rows, filename string) ([]byte, e
 func needsCommaDecimal(columnName string) bool {
 	// Columnas que necesitan formato decimal con coma
 	decimalColumns := []string{
+		// Columnas existentes
 		"Costo Unitario (USD)",
 		"Cantidad Total Vendida",
 		"Cantidad",
@@ -180,6 +181,12 @@ func needsCommaDecimal(columnName string) bool {
 		"Unidades_Por_Paquete",
 		"Promedio_Costo_CIF",
 		"Costo_Promedio_IKA",
+
+		// Nuevas columnas en español
+		"Costo Promedio CIF (USD)",
+		"Costo Promedio Unitario (CLP)",
+		"Unidades por Caja",
+		"Total Unidades Ingresadas",
 	}
 
 	for _, col := range decimalColumns {

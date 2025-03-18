@@ -4,82 +4,58 @@ package mysql
 func GetInventarioQuery() string {
 	return `
 SELECT
-    COD_ART AS Codigo_Producto,
-    MAX(DES_ADU) AS Nombre_Producto,
-    MAX(IFNULL(Marca, 'POR ASIGNAR')) AS MARCA,
-    MAX(
-        IFNULL(SubFamilia, 'POR ASIGNAR')
-    ) AS CATEGORIA,
-    CASE
-        WHEN MAX(IFNULL(NomDetSubFam, '')) <> '' AND MAX(IFNULL(NomDetSubFam, '')) <> 'POR ASIGNAR' AND MAX(IFNULL(NomDetSubFam, '')) <> 'Sin Asignar' THEN MAX(IFNULL(NomDetSubFam, ''))
-        ELSE 
-            -- Intentamos extraer dimensiones del nombre del producto
-            CASE 
-                -- Buscar patrón de dimensiones como "20X60", "20X60 CM", "20X60 CMS", etc.
-                WHEN MAX(DES_ADU) REGEXP '[0-9]+[Xx][0-9]+'
-                THEN 
-                    SUBSTRING(
-                        MAX(DES_ADU),
-                        GREATEST(
-                            LOCATE(' ', MAX(DES_ADU), LOCATE('[0-9]+[Xx][0-9]+', MAX(DES_ADU))),
-                            LOCATE(' ', REVERSE(MAX(DES_ADU)), LOCATE('[0-9]+[Xx][0-9]+', REVERSE(MAX(DES_ADU))))
-                        )
-                    )
-                -- Si no encontramos un patrón claro, indicamos que está por asignar
-                ELSE 'POR ASIGNAR'
-            END
-    END AS DIMENSIONES,
-    UNI_CAJ AS Unidades_Por_Paquete,
-    SUM(CAN_ING) AS Cantidad_Total_Ingresada,
+    -- Identificación del producto
+    COD_ART AS "Código de Producto",
+    MAX(DES_ADU) AS "Nombre Aduanero", 
+    MAX(IFNULL(Marca, 'POR ASIGNAR')) AS "Marca del Producto",
+    MAX(IFNULL(SubFamilia, 'POR ASIGNAR')) AS "Categoría Principal",
+    MAX(IFNULL(NomDetSubFam, 'POR ASIGNAR')) AS "Subcategoría/Dimensiones",
+
+    -- Especificaciones de empaque
+    UNI_CAJ AS "Unidades por Caja",
+
+    -- Métricas de ingresos
+    SUM(CAN_ING) AS "Total Unidades Ingresadas",
     ROUND(
-    IF(
-        SUM(CAN_ING) = 0,
-        0,
-        SUM(CIF_UNI * CAN_ING) / SUM(CAN_ING)
-    ),
-    2
-) AS Promedio_Costo_CIF,
-ROUND(
-    IF(
-        SUM(COS_UNI) = 0,
-        0,
-        SUM(COS_UNI * CAN_ING) / SUM(CAN_ING)
-    ),
-    2
-) AS Costo_Promedio_IKA,
-    MIN(fec_ing) AS Fecha_Primer_Ingreso,
-    MAX(fec_ing) AS Fecha_Ultimo_Ingreso,
-    DATEDIFF(CURDATE(), MIN(fec_ing)) AS Dias_Desde_Primer_Ingreso,
-    COUNT(*) AS Cantidad_De_Ingresos,
-    -- Metadatos en formato JSON (compatible con MySQL 5.1)
+        IF(SUM(CAN_ING) = 0, 0, 
+           SUM(CIF_UNI * CAN_ING) / SUM(CAN_ING)),
+        2
+    ) AS "Costo Promedio CIF (USD)", 
+    ROUND(
+        IF(SUM(COS_UNI) = 0, 0, 
+           SUM(COS_UNI * CAN_ING) / SUM(CAN_ING)),
+        2
+    ) AS "Costo Promedio Unitario (CLP)", 
+
+    -- Fechas relevantes
+    MIN(fec_ing) AS "Fecha Primer Ingreso",
+    MAX(fec_ing) AS "Fecha Último Ingreso",
+    DATEDIFF(CURDATE(), MIN(fec_ing)) AS "Días Desde Primer Ingreso",
+
+    -- Conteo de registros
+    COUNT(*) AS "Cantidad de Ingresos",
+
+    -- Metadatos en JSON
     CONCAT(
         '[',
         GROUP_CONCAT(
             DISTINCT CONCAT(
-                '{\'Zeta\':\'',
-                ZET_ART,
-                '\',',
-                '\'Anio_Produccion\':\'',
-                ANIO_PRO,
-                '\',',
-                '\'Cantidad_Ingresada\':',
-                CAN_ING,
-                ',',
-                '\'Fecha_Ingreso\':\'',
-                DATE_FORMAT(fec_ing, '%Y-%m-%d'),
-                '\'}'
+                '{\'Zeta\':\'', ZET_ART, '\',',
+                '\'Año Producción\':\'', ANIO_PRO, '\',',
+                '\'Unidades Ingresadas\':', CAN_ING, ',',
+                '\'Fecha Ingreso\':\'', DATE_FORMAT(fec_ing, '%Y-%m-%d'), '\'}'
             ) SEPARATOR ','
         ),
         ']'
-    ) AS Metadatos_JSON
+    ) AS "Historial de Ingresos (JSON)"
 FROM saldos s
 WHERE
     CAST(ANIO_PRO AS SIGNED) = ?
     AND (? = '' OR COD_ART LIKE CONCAT('%', ?, '%'))
-GROUP BY
-    COD_ART,
+GROUP BY 
+    COD_ART, 
     UNI_CAJ
-ORDER BY Codigo_Producto
+ORDER BY "Código de Producto"
 `
 }
 
@@ -133,12 +109,14 @@ END;
 func GetSimplifiedDimensionsQuery() string {
 	return `
 SELECT
-    COD_ART AS Codigo_Producto,
-    MAX(DES_ADU) AS Nombre_Producto,
-    MAX(IFNULL(Marca, 'POR ASIGNAR')) AS MARCA,
-    MAX(IFNULL(SubFamilia, 'POR ASIGNAR')) AS CATEGORIA,
+    -- Identificación del producto
+    COD_ART AS "Código de Producto",
+    MAX(DES_ADU) AS "Nombre Aduanero", 
+    MAX(IFNULL(Marca, 'POR ASIGNAR')) AS "Marca del Producto",
+    MAX(IFNULL(SubFamilia, 'POR ASIGNAR')) AS "Categoría Principal",
     CASE
-        WHEN MAX(IFNULL(NomDetSubFam, '')) <> '' AND MAX(IFNULL(NomDetSubFam, '')) <> 'POR ASIGNAR' AND MAX(IFNULL(NomDetSubFam, '')) <> 'Sin Asignar' THEN MAX(IFNULL(NomDetSubFam, ''))
+        WHEN MAX(IFNULL(NomDetSubFam, '')) <> '' AND MAX(IFNULL(NomDetSubFam, '')) <> 'POR ASIGNAR' AND MAX(IFNULL(NomDetSubFam, '')) <> 'Sin Asignar' 
+        THEN MAX(IFNULL(NomDetSubFam, ''))
         ELSE 
             -- Intento manual de extraer dimensiones con funciones básicas
             CASE 
@@ -157,21 +135,31 @@ SELECT
                     )
                 ELSE 'POR ASIGNAR'
             END
-    END AS DIMENSIONES,
-    UNI_CAJ AS Unidades_Por_Paquete,
-    SUM(CAN_ING) AS Cantidad_Total_Ingresada,
-    ROUND(IF(SUM(CAN_ING) = 0, 0, SUM(CIF_UNI * CAN_ING) / SUM(CAN_ING)), 2) AS Promedio_Costo_CIF,
-    ROUND(IF(SUM(COS_UNI * CAN_ING) = 0, 0, SUM(COS_UNI * CAN_ING) / SUM(CAN_ING)), 2) AS Costo_Promedio_IKA,
-    MIN(fec_ing) AS Fecha_Primer_Ingreso,
-    MAX(fec_ing) AS Fecha_Ultimo_Ingreso,
-    DATEDIFF(CURDATE(), MIN(fec_ing)) AS Dias_Desde_Primer_Ingreso,
-    COUNT(*) AS Cantidad_De_Ingresos,
+    END AS "Subcategoría/Dimensiones",
+
+    -- Especificaciones de empaque
+    UNI_CAJ AS "Unidades por Caja",
+
+    -- Métricas de ingresos
+    SUM(CAN_ING) AS "Total Unidades Ingresadas",
+    ROUND(IF(SUM(CAN_ING) = 0, 0, SUM(CIF_UNI * CAN_ING) / SUM(CAN_ING)), 2) AS "Costo Promedio CIF (USD)",
+    ROUND(IF(SUM(COS_UNI * CAN_ING) = 0, 0, SUM(COS_UNI * CAN_ING) / SUM(CAN_ING)), 2) AS "Costo Promedio Unitario (CLP)",
+
+    -- Fechas relevantes
+    MIN(fec_ing) AS "Fecha Primer Ingreso",
+    MAX(fec_ing) AS "Fecha Último Ingreso",
+    DATEDIFF(CURDATE(), MIN(fec_ing)) AS "Días Desde Primer Ingreso",
+
+    -- Conteo de registros
+    COUNT(*) AS "Cantidad de Ingresos",
+
+    -- Metadatos en JSON
     CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT(
         '{\'Zeta\':\'', ZET_ART, '\',',
-        '\'Anio_Produccion\':\'', ANIO_PRO, '\',',
-        '\'Cantidad_Ingresada\':', CAN_ING, ',',
-        '\'Fecha_Ingreso\':\'', DATE_FORMAT(fec_ing, '%Y-%m-%d'), '\'}'
-    ) SEPARATOR ','), ']') AS Metadatos_JSON
+        '\'Año Producción\':\'', ANIO_PRO, '\',',
+        '\'Unidades Ingresadas\':', CAN_ING, ',',
+        '\'Fecha Ingreso\':\'', DATE_FORMAT(fec_ing, '%Y-%m-%d'), '\'}'
+    ) SEPARATOR ','), ']') AS "Historial de Ingresos (JSON)"
 FROM saldos s
 WHERE
     CAST(ANIO_PRO AS SIGNED) = ?
@@ -179,6 +167,6 @@ WHERE
 GROUP BY
     COD_ART,
     UNI_CAJ
-ORDER BY Codigo_Producto
+ORDER BY "Código de Producto"
 `
 }

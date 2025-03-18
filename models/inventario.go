@@ -4,30 +4,30 @@ import (
 	"time"
 )
 
-// Inventario representa un elemento de inventario
+// Inventario representa un elemento de inventario con nombres en español
 type Inventario struct {
-	CodigoProducto         string    `json:"codigoProducto"`
-	NombreProducto         string    `json:"nombreProducto"`
-	Marca                  string    `json:"marca"`
-	Categoria              string    `json:"categoria"`
-	Dimensiones            string    `json:"dimensiones"`
-	UnidadesPorPaquete     float64   `json:"unidadesPorPaquete"`
-	CantidadTotalIngresada float64   `json:"cantidadTotalIngresada"`
-	PromedioCostoCIF       float64   `json:"promedioCostoCIF"`
-	CostoPromedioIKA       float64   `json:"costoPromedioIKA"`
-	FechaPrimerIngreso     time.Time `json:"fechaPrimerIngreso"`
-	FechaUltimoIngreso     time.Time `json:"fechaUltimoIngreso"`
-	DiasDesdePrimerIngreso int       `json:"diasDesdePrimerIngreso"` // Nuevo campo
-	CantidadDeIngresos     int       `json:"cantidadDeIngresos"`
-	MetadatosJSON          string    `json:"metadatosJSON"`
+	CodigoProducto          string    `json:"codigoProducto"`
+	NombreAduanero          string    `json:"nombreAduanero"`
+	MarcaProducto           string    `json:"marcaProducto"`
+	CategoriaPrincipal      string    `json:"categoriaPrincipal"`
+	SubcategoriaDimensiones string    `json:"subcategoriaDimensiones"`
+	UnidadesPorCaja         float64   `json:"unidadesPorCaja"`
+	TotalUnidadesIngresadas float64   `json:"totalUnidadesIngresadas"`
+	CostoPromedioCIF        float64   `json:"costoPromedioCIF"`
+	CostoPromedioUnitario   float64   `json:"costoPromedioUnitario"`
+	FechaPrimerIngreso      time.Time `json:"fechaPrimerIngreso"`
+	FechaUltimoIngreso      time.Time `json:"fechaUltimoIngreso"`
+	DiasDesdePrimerIngreso  int       `json:"diasDesdePrimerIngreso"`
+	CantidadIngresos        int       `json:"cantidadIngresos"`
+	HistorialIngresos       string    `json:"historialIngresos"`
 }
 
-// MetadatoProducto representa un elemento dentro del array MetadatosJSON
+// MetadatoProducto representa un elemento dentro del array de historial de ingresos
 type MetadatoProducto struct {
-	Zeta              string    `json:"Zeta"`
-	AnioProduccion    string    `json:"Anio_Produccion"`
-	CantidadIngresada float64   `json:"Cantidad_Ingresada"`
-	FechaIngreso      time.Time `json:"Fecha_Ingreso"`
+	Zeta               string    `json:"Zeta"`
+	AnioProduccion     string    `json:"Año Producción"`
+	UnidadesIngresadas float64   `json:"Unidades Ingresadas"`
+	FechaIngreso       time.Time `json:"Fecha Ingreso"`
 }
 
 // InventarioFiltro define los filtros para consultar inventario
